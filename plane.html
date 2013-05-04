@@ -26,7 +26,7 @@
     			controls.noFly = true;
     			controls.lookVertical = false;
 		        scene = new THREE.Scene();
-		        scene.fog = new THREE.Fog(0xEEEEEE, 60, 1000);
+		        scene.fog = new THREE.Fog(0xEEEEEE, 1, 100);
 
 				var light = new THREE.DirectionalLight( 0xffffff, 1.0 );
 				light.position.set( 0, 50, 10 );
@@ -34,7 +34,8 @@
 				scene.add(light);
 
 				var geometry = new THREE.SphereGeometry(2, 32, 32);
-				var material = new THREE.MeshLambertMaterial({ color: 0x25256F });
+				var material = new THREE.MeshPhongMaterial({ color: 0x25256F,
+					specular: 0x20205F, shininess: 90 });
 				//material.ambient.setRGB(material.color.r*0.4, material.color.g*0.4,
 				//	material.color.b*0.4);
 				var mesh = new THREE.Mesh(geometry, material);
