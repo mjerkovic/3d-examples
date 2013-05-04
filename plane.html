@@ -1,0 +1,136 @@
+<html>
+	<head>
+		<script src="lib/three.min.js"></script>
+		<script src="lib/controls.js"></script>
+		<script>
+		    var camera, scene, renderer, compass, forward, controls;
+
+		   	function setup() {
+			    init();
+			    animate();
+		   	}
+
+		    function init() {
+/*		        document.addEventListener('keydown', function(ev) {
+			        //ev.preventDefault();
+			        forward = (ev.keyCode == 87);
+			    }, false);
+*/
+
+		        camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 500 );
+		        camera.position.set(0, 2, 30);
+    			camera.lookAt(new THREE.Vector3(0, 4, 0));
+
+    			controls = new FirstPersonControls(camera);
+    			controls.movementSpeed = 2;
+    			controls.noFly = true;
+    			controls.lookVertical = false;
+		        scene = new THREE.Scene();
+		        scene.fog = new THREE.Fog(0xEEEEEE, 60, 1000);
+
+				var light = new THREE.DirectionalLight( 0xffffff, 1.0 );
+				light.position.set( 0, 50, 10 );
+				
+				scene.add(light);
+
+				var geometry = new THREE.SphereGeometry(2, 32, 32);
+				var material = new THREE.MeshLambertMaterial({ color: 0x25256F });
+				//material.ambient.setRGB(material.color.r*0.4, material.color.g*0.4,
+				//	material.color.b*0.4);
+				var mesh = new THREE.Mesh(geometry, material);
+				scene.add(mesh);
+
+				var barGeometry = new THREE.CylinderGeometry(0.5, 0.5, 10);
+				var pointGeometry = new THREE.CylinderGeometry(0, 1, 1.5, 32, 32);
+				
+				var yBarGeometryMaterial = new THREE.MeshLambertMaterial({ color: 0x33CC00 });
+				var m = new THREE.Mesh(barGeometry, yBarGeometryMaterial);
+				m.position.y = 5;
+				//scene.add(m);
+				var yPointMesh = new THREE.Mesh(pointGeometry, yBarGeometryMaterial);
+				yPointMesh.position.y = 10;
+				//scene.add(yPointMesh);
+			
+				var yPointer = new THREE.Object3D();
+				yPointer.add(m);
+				yPointer.add(yPointMesh);
+				//scene.add(yPointer);
+
+				var xBarGeometryMaterial = new THREE.MeshLambertMaterial({ color: 0xCC0000 });
+				var m2 = new THREE.Mesh(barGeometry, xBarGeometryMaterial);
+				m2.rotation.z = 90 * (Math.PI/180);
+				m2.position.x = 5;
+				//scene.add(m2);
+				var xPointMesh = new THREE.Mesh(pointGeometry, xBarGeometryMaterial);
+				xPointMesh.rotation.z = -90 * (Math.PI/180);
+				xPointMesh.position.x = 10;
+				//scene.add(xPointMesh);
+
+				var xPointer = new THREE.Object3D();
+				xPointer.add(m2);
+				xPointer.add(xPointMesh);
+				//scene.add(xPointer);
+			
+				var zBarGeometryMaterial = new THREE.MeshLambertMaterial({ color: 0x0033CC });
+				var m3 = new THREE.Mesh(barGeometry, zBarGeometryMaterial);
+				m3.rotation.x = 90 * (Math.PI/180);
+				m3.position.z = 5;
+				//scene.add(m3);
+				var zPointMesh = new THREE.Mesh(pointGeometry, zBarGeometryMaterial);
+				zPointMesh.rotation.x = 90 * (Math.PI/180);
+				zPointMesh.position.z = 10;
+				//scene.add(zPointMesh);
+
+				var zPointer = new THREE.Object3D();
+				zPointer.add(m3);
+				zPointer.add(zPointMesh);
+				//scene.add(zPointer);
+
+				compass = new THREE.Object3D();
+				compass.add(mesh);
+				compass.add(xPointer);
+				compass.add(yPointer);
+				compass.add(zPointer);
+				scene.add(compass);
+
+				var cubeGeometry = new THREE.CubeGeometry(10, 10, 20);
+				var cube = new THREE.Mesh(cubeGeometry, material);
+				cube.position.x = 10;
+				cube.position.y = 5;
+				cube.position.z = -100;
+				scene.add(cube);
+
+				var planeGeometry = new THREE.PlaneGeometry(1000,1000,100,100);
+				var plane = new THREE.Mesh(planeGeometry, 
+					new THREE.MeshBasicMaterial({ color: 0x0, wireframe: true }));
+				plane.rotation.x = -90 * (Math.PI/180);
+				plane.position.y = -2;
+				scene.add(plane);
+
+		        renderer = new THREE.WebGLRenderer();
+		        renderer.setSize( window.innerWidth, window.innerHeight );
+		        renderer.setClearColor(0xDEDEDE);
+		        document.body.appendChild( renderer.domElement );
+		    }
+
+		    function animate() {
+
+		        // note: three.js includes requestAnimationFrame shim
+		        requestAnimationFrame( animate );
+
+		        compass.translate.y -= compass.position.y;
+		        compass.rotation.x += 0.01;
+		        compass.rotation.y += 0.01;
+/*		        if (forward) {
+		        	camera.position.z -= 0.3;
+		        }
+*/
+				controls.update(0.1);
+		        renderer.render( scene, camera );
+
+		    }
+		</script>
+	</head>
+	<body onload="setup()">
+	</body>		
+</html>
