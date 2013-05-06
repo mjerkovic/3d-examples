@@ -28,7 +28,7 @@
     			controls.noFly = true;
     			controls.lookVertical = false;
 
-                scene = initScene();
+                scene = initScene(camera);
 
                 /*var text = new THREE.TextGeometry("Hello", {font: 'helvetiker', size: 2, height: 1 });
                 var textWrapper = new THREE.MeshNormalMaterial({color: 0x00ff00});
@@ -47,6 +47,7 @@
                 //compass.rotation.y += 0.01;
                 controls.update(0.1);
                 scene.simulate();
+                scene.doIt();
                 /*		        if (forward) {
 		        	camera.position.z -= 0.3;
 		        }
