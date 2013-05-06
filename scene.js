@@ -4,7 +4,7 @@ function initScene() {
     addGroundTo(scene);
     scene.add(compass());
     scene.add(building());
-    scene.add(bouningBall());
+    scene.add(bouncingBall());
 
     return scene;
 }
@@ -21,7 +21,7 @@ function createScene() {
     //scene.fog = new THREE.Fog(0xEEEEEE, 1, 100);
     return scene;
 }
-function bouningBall() {
+function bouncingBall() {
     var bouncingBallGeometry = new THREE.SphereGeometry(2, 32, 32);
     var bouncingMaterial = new Physijs.createMaterial(
         new THREE.MeshPhongMaterial({ color: 0x25256F,
@@ -29,6 +29,10 @@ function bouningBall() {
     var bouncingBall = new Physijs.SphereMesh(bouncingBallGeometry, bouncingMaterial, 1);
 //				bouncingMesh.position.set(50, 30, -10);
     bouncingBall.position.set(0, 100, 0);
+    bouncingBall.addEventListener("collision", function(other, a, b) {
+        console.log("linearVelocity = " + a.toArray().join());
+        console.log("angularVelocity = " + b.toArray().join());
+    });
     return bouncingBall;
 }
 

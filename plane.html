@@ -4,9 +4,10 @@
 		<script src="lib/controls.js"></script>
 		<script src="lib/physi.js"></script>
 		<script src="lib/physijs_worker.js"></script>
-		<script src="scene.js"></script>
+        <script src="lib/helvetiker_regular.typeface.js"></script>
+        <script src="scene.js"></script>
 		<script>
-		    var camera, scene, renderer, compass, forward, controls;
+		    var camera, scene, renderer, compass, forward, controls, words;
 
 		   	function setup() {
 			    init();
@@ -29,22 +30,27 @@
 
                 scene = initScene();
 
+                /*var text = new THREE.TextGeometry("Hello", {font: 'helvetiker', size: 2, height: 1 });
+                var textWrapper = new THREE.MeshNormalMaterial({color: 0x00ff00});
+                words = new THREE.Mesh(text, textWrapper);
+                scene.add(words);*/
+
                 renderer = new THREE.WebGLRenderer({ antialias: true });
                 renderer.setSize( window.innerWidth, window.innerHeight );
                 renderer.setClearColor(0xDEDEDE);
                 document.body.appendChild( renderer.domElement );
             }
 
-		    function animate() {
-				scene.simulate();
-		        //compass.translate.y -= compass.position.y;
-		        //compass.rotation.x += 0.01;
-		        //compass.rotation.y += 0.01;
-/*		        if (forward) {
+            function animate() {
+                //compass.translate.y -= compass.position.y;
+                //compass.rotation.x += 0.01;
+                //compass.rotation.y += 0.01;
+                controls.update(0.1);
+                scene.simulate();
+                /*		        if (forward) {
 		        	camera.position.z -= 0.3;
 		        }
 */
-				controls.update(0.1);
 		        renderer.render( scene, camera );
 		        // note: three.js includes requestAnimationFrame shim
 		        requestAnimationFrame( animate );
