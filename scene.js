@@ -2,6 +2,7 @@ function initScene(camera) {
     var scene = createScene();
     addLightsTo(scene);
     addGroundTo(scene);
+    walls(scene);
     var compass = this.compass();
     camera.lookAt(compass.position);
     scene.add(compass);
@@ -34,8 +35,8 @@ function bouncingBall() {
 //				bouncingMesh.position.set(50, 30, -10);
     bouncingBall.position.set(0.2, 100, 0);
     bouncingBall.addEventListener("collision", function(other, a, b) {
-        console.log("linearVelocity = " + a.toArray().join());
-        console.log("angularVelocity = " + b.toArray().join());
+        //console.log("linearVelocity = " + a.toArray().join());
+        //console.log("angularVelocity = " + b.toArray().join());
     });
     return bouncingBall;
 }
@@ -44,27 +45,41 @@ function crashing(scene) {
     var bouncingBallGeometry = new THREE.SphereGeometry(2, 32, 32);
     var bouncingMaterial = new Physijs.createMaterial(
         new THREE.MeshPhongMaterial({ color: 0x25256F,
-            specular: 0x20205F, shininess: 90 }), .8, 0.4);
+            specular: 0x20205F, shininess: 90 }), .2, 0.8);
     var crash1 = new Physijs.SphereMesh(bouncingBallGeometry, bouncingMaterial, 1);
-    crash1.position.set(50, 2, -3);
-    crash1.velocity = 0.2;
+    crash1.position.set(50, 0, -3);
+    crash1.velocity = 0.5;
     crash1.addEventListener("collision", function(other, linear, angular) {
-        crash1.velocity = 0;
+        if (other == crash2) {
+            crash1.velocity = 0;
+        }
     });
     var crash2 = new Physijs.SphereMesh(bouncingBallGeometry, bouncingMaterial, 1);
-    crash2.position.set(100, 2, -3);
+    crash2.position.set(100, 0, -3);
+    crash2.velocity = 0.3;
     crash2.addEventListener("collision", function(other, linear, angular) {
-        crash2.velocity = 0;
+        console.log("CRRAASSHH");
+        if (other == crash1) {
+            crash2.velocity = 0;
+        }
     });
-    crash2.velocity = 0.2;
+    var crash3 = new Physijs.SphereMesh(bouncingBallGeometry, bouncingMaterial, 1);
+    crash3.position.set(30, 0, -3);
+    crash3.velocity = 0.3;
+    crash3.addEventListener("collision", function(other, linear, angular) {
+        console.log("Hit the wall");
+    });
     scene.doIt = function() {
-        crash1.position.x += crash1.velocity;
+        crash1.translateX(crash1.velocity);
         crash1.__dirtyPosition = crash1.velocity > 0;
         crash2.position.x -= crash2.velocity;
-        crash2._dirtyPosition = crash2.velocity = true;
+        crash2.__dirtyPosition = crash2.velocity > 0;
+        crash3.position.x -= crash3.velocity;
+        crash3.__dirtyPosition = crash3.velocity > 0;
     };
     scene.add(crash1);
     scene.add(crash2);
+    scene.add(crash3);
 }
 
 function addGroundTo(scene) {
@@ -111,6 +126,30 @@ function addLightsTo(scene) {
     //var light = new THREE.DirectionalLight( 0xffffff, 1.0 );
     // light.position.set( 0, 50, 10 );
     //scene.add(light);
+}
+
+function walls(scene) {
+    var wallGeometry = new THREE.CubeGeometry(5, 15, 5);
+    var wallMaterial = new Physijs.createMaterial(
+        new THREE.MeshLambertMaterial({ map: THREE.ImageUtils.loadTexture( 'images/wall-1.jpg' ) }));
+    wallMaterial.map.wrapS = wallMaterial.map.wrapT = THREE.RepeatWrapping;
+    wallMaterial.map.repeat.set( 1, 1 );
+    var wall1 = new Physijs.BoxMesh(wallGeometry, wallMaterial, 0);
+    wall1.position.set(-5, 0.5, 0);
+    scene.add(wall1);
+    var wall2 = new Physijs.BoxMesh(wallGeometry, wallMaterial, 0);
+    wall2.position.set(-5, 0.5, -5);
+    scene.add(wall2);
+    var wall3 = new Physijs.BoxMesh(wallGeometry, wallMaterial, 0);
+    wall3.position.set(-5, 0.5, -10);
+    scene.add(wall3);
+    var wall4 = new Physijs.BoxMesh(wallGeometry, wallMaterial, 0);
+    wall4.position.set(0, 0.5, -10);
+    scene.add(wall4);
+    var wall5 = new Physijs.BoxMesh(wallGeometry, wallMaterial, 0);
+    wall5.position.set(5, 0.5, -10);
+    scene.add(wall5);
+
 }
 
 function compass() {
