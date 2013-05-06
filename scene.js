@@ -83,7 +83,7 @@ function crashing(scene) {
 }
 
 function addGroundTo(scene) {
-    var groundGeometry = new THREE.PlaneGeometry(1000,1000,100,100);
+    var groundGeometry = new THREE.CubeGeometry(1000, 1, 1000, 100, 1, 100);
     var groundMaterial = new Physijs.createMaterial(
         new THREE.MeshLambertMaterial({ map: THREE.ImageUtils.loadTexture( 'images/rocks.jpg' ) }),
         .8, // high friction
@@ -91,10 +91,10 @@ function addGroundTo(scene) {
     );
     groundMaterial.map.wrapS = groundMaterial.map.wrapT = THREE.RepeatWrapping;
     groundMaterial.map.repeat.set( 10, 10 );
-    var ground = new Physijs.PlaneMesh(groundGeometry, groundMaterial, 0);
+    var ground = new Physijs.BoxMesh(groundGeometry, groundMaterial, 0);
     ground.receiveShadow = true;
-    ground.rotation.x = -90 * (Math.PI/180);
-    ground.position.y = -2;
+    //ground.rotation.x = -90 * (Math.PI/180);
+    ground.position.y = -2.5;
     ground.receiveShadow = true;
     scene.add( ground );
 }
