@@ -1,0 +1,44 @@
+<html>
+	<head>
+		<script src="lib/three.min.js"></script>
+		<script src="lib/controls.js"></script>
+		<script src="lib/physi.js"></script>
+		<script src="lib/physijs_worker.js"></script>
+        <script src="lib/helvetiker_regular.typeface.js"></script>
+        <script src="poolScene.js"></script>
+		<script>
+		    var camera, scene, renderer;
+
+		   	function setup() {
+			    init();
+			    animate();
+		   	}
+
+		    function init() {
+		    	Physijs.scripts.worker = 'lib/physijs_worker.js';
+				Physijs.scripts.ammo = 'ammo.js';
+
+		        camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 500 );
+		        camera.position.set(0, 20, 40);
+    			camera.lookAt(new THREE.Vector3(0, 0, 0));
+
+                scene = initScene(camera);
+
+                renderer = new THREE.WebGLRenderer({ antialias: true });
+                renderer.setSize( window.innerWidth, window.innerHeight );
+                renderer.setClearColor(0xDEDEDE);
+                document.body.appendChild( renderer.domElement );
+            }
+
+            function animate() {
+                scene.simulate();
+                scene.doIt();
+		        renderer.render( scene, camera );
+		        // note: three.js includes requestAnimationFrame shim
+		        requestAnimationFrame(animate);
+		    }
+		</script>
+	</head>
+	<body onload="setup()">
+	</body>		
+</html>
