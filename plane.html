@@ -2,6 +2,8 @@
 	<head>
 		<script src="lib/three.min.js"></script>
 		<script src="lib/controls.js"></script>
+		<script src="lib/physi.js"></script>
+		<script src="lib/physijs_worker.js"></script>
 		<script>
 		    var camera, scene, renderer, compass, forward, controls;
 
@@ -11,6 +13,9 @@
 		   	}
 
 		    function init() {
+
+		    	Physijs.scripts.worker = 'lib/physijs_worker.js';
+				Physijs.scripts.ammo = 'ammo.js';
 /*		        document.addEventListener('keydown', function(ev) {
 			        //ev.preventDefault();
 			        forward = (ev.keyCode == 87);
@@ -22,26 +27,54 @@
     			camera.lookAt(new THREE.Vector3(0, 4, 0));
 
     			controls = new FirstPersonControls(camera);
+    			controls.target = new THREE.Vector3(0, 4, 0);
     			controls.movementSpeed = 2;
     			controls.noFly = true;
     			controls.lookVertical = false;
-		        scene = new THREE.Scene();
-		        scene.fog = new THREE.Fog(0xEEEEEE, 1, 100);
 
-				var light = new THREE.DirectionalLight( 0xffffff, 1.0 );
+    			scene = new Physijs.Scene;
+                scene.setGravity(new THREE.Vector3( 0, -9.82, 0 ));
+                scene.addEventListener(
+                        'update',
+                        function() {
+                                scene.simulate( undefined, 1 );
+                                //physics_stats.update();
+                        }
+                );
+
+		        //scene = new THREE.Scene();
+		        //scene.fog = new THREE.Fog(0xEEEEEE, 1, 100);
+
+/*				var light = new THREE.DirectionalLight( 0xffffff, 1.0 );
 				light.position.set( 0, 50, 10 );
-				
-				scene.add(light);
+*/
+				var ambientLight = new THREE.AmbientLight( 0x404040 );
+				scene.add(ambientLight);
+				var hemisphere = new THREE.HemisphereLight(0xFFFFFF, 0xFFFFFF, 0.6);
+				scene.add(hemisphere);
+				var pointLight = new THREE.PointLight(0xFFFFFF, 1.5, 50);
+				pointLight.position.set(0,10,0);
+				scene.add(pointLight);
+				//var pointLight2= new THREE.DirectionalLight(0xFFFFFF, 1.5);// , 90);
+				//pointLight2.position.set(50, 0, 0);
+				//scene.add(pointLight2);
+				//var spotLight = new THREE.SpotLight( 0xffffff );
+				//spotLight.position.set( 0, 100, 0 );
+				//spotLight.castShadow = true;
+				//scene.add(spotLight);				
 
 				var geometry = new THREE.SphereGeometry(2, 32, 32);
-				var material = new THREE.MeshPhongMaterial({ color: 0x25256F,
-					specular: 0x20205F, shininess: 90 });
+				//var material = new THREE.MeshPhongMaterial({ color: 0x25256F,
+				//	specular: 0x20205F, shininess: 90 });
+				var material = new Physijs.createMaterial(
+					new THREE.MeshPhongMaterial({ color: 0x25256F,
+					specular: 0x20205F, shininess: 90 }), .8, 0.1)				
 				//material.ambient.setRGB(material.color.r*0.4, material.color.g*0.4,
 				//	material.color.b*0.4);
-				var mesh = new THREE.Mesh(geometry, material);
-				scene.add(mesh);
+				var mesh = new Physijs.SphereMesh(geometry, material, 1);
+				mesh.position.set(0, 10, 0);
 
-				var barGeometry = new THREE.CylinderGeometry(0.5, 0.5, 10);
+				var barGeometry = new THREE.CylinderGeometry(0.5, 0.5, 10, 64, 64);
 				var pointGeometry = new THREE.CylinderGeometry(0, 1, 1.5, 32, 32);
 				
 				var yBarGeometryMaterial = new THREE.MeshLambertMaterial({ color: 0x33CC00 });
@@ -87,12 +120,18 @@
 				zPointer.add(zPointMesh);
 				//scene.add(zPointer);
 
-				compass = new THREE.Object3D();
-				compass.add(mesh);
-				compass.add(xPointer);
-				compass.add(yPointer);
-				compass.add(zPointer);
-				scene.add(compass);
+				mesh.add(xPointer);
+				mesh.add(yPointer);
+				mesh.add(zPointer);
+				scene.add(mesh);
+
+				//compass = new THREE.Object3D();
+				//compass.add(mesh);
+				//compass.add(xPointer);
+				//compass.add(yPointer);
+				//compass.add(zPointer);
+				//compass.position.set(0, 10, 0);
+				//scene.add(compass);
 
 				var cubeGeometry = new THREE.CubeGeometry(10, 10, 20);
 				var cube = new THREE.Mesh(cubeGeometry, material);
@@ -102,33 +141,55 @@
 				scene.add(cube);
 
 				var planeGeometry = new THREE.PlaneGeometry(1000,1000,100,100);
-				var plane = new THREE.Mesh(planeGeometry, 
+				var groundMaterial = new Physijs.createMaterial(
+					new THREE.MeshLambertMaterial({ map: THREE.ImageUtils.loadTexture( 'images/rocks.jpg' ) }),
+					.8, // high friction
+					.3 // low restitution
+				);
+				groundMaterial.map.wrapS = groundMaterial.map.wrapT = THREE.RepeatWrapping;
+				groundMaterial.map.repeat.set( 10, 10 );
+				ground = new Physijs.PlaneMesh(planeGeometry, groundMaterial, 0);
+                ground.receiveShadow = true;
+				ground.rotation.x = -90 * (Math.PI/180);
+				ground.position.y = -2;
+				ground.receiveShadow = true;
+                scene.add( ground );
+
+				var bouncingBall = new THREE.SphereGeometry(2, 32, 32);
+				var bouncingMaterial = new Physijs.createMaterial(
+					new THREE.MeshPhongMaterial({ color: 0x25256F,
+					specular: 0x20205F, shininess: 90 }), .8, 1);
+				var bouncingMesh = new Physijs.SphereMesh(bouncingBall, bouncingMaterial, 1);
+//				bouncingMesh.position.set(50, 30, -10);
+				bouncingMesh.position.set(0, 100, 0);
+				scene.add(bouncingMesh);
+
+
+/*				var plane = new THREE.Mesh(planeGeometry, 
 					new THREE.MeshBasicMaterial({ color: 0x0, wireframe: true }));
 				plane.rotation.x = -90 * (Math.PI/180);
 				plane.position.y = -2;
 				scene.add(plane);
-
-		        renderer = new THREE.WebGLRenderer();
+*/
+		        renderer = new THREE.WebGLRenderer({ antialias: true });
 		        renderer.setSize( window.innerWidth, window.innerHeight );
 		        renderer.setClearColor(0xDEDEDE);
 		        document.body.appendChild( renderer.domElement );
 		    }
 
 		    function animate() {
-
-		        // note: three.js includes requestAnimationFrame shim
-		        requestAnimationFrame( animate );
-
-		        compass.translate.y -= compass.position.y;
-		        compass.rotation.x += 0.01;
-		        compass.rotation.y += 0.01;
+				scene.simulate();
+		        //compass.translate.y -= compass.position.y;
+		        //compass.rotation.x += 0.01;
+		        //compass.rotation.y += 0.01;
 /*		        if (forward) {
 		        	camera.position.z -= 0.3;
 		        }
 */
 				controls.update(0.1);
 		        renderer.render( scene, camera );
-
+		        // note: three.js includes requestAnimationFrame shim
+		        requestAnimationFrame( animate );
 		    }
 		</script>
 	</head>
