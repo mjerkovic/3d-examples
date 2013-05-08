@@ -14,6 +14,11 @@ function createScene() {
             scene.simulate(undefined, 1);
         }
     );
+    var loader = new THREE.JSONLoader();
+    loader.load('scene.json', function(geom) {
+        debugger;
+        console.log(geom);
+    });
     return scene;
 }
 
@@ -76,11 +81,11 @@ function addBallTo(scene) {
         new THREE.MeshPhongMaterial({ color: 0x25256F,
             specular: 0x20205F, shininess: 90 }), .2, 0.8);
     var crash1 = new Physijs.SphereMesh(bouncingBallGeometry, bouncingMaterial, 1);
-    crash1.position.set(-30, 1, 0);
-    crash1.velocity = 0.5;
+    crash1.position.set(-30, 5, 0);
+    //crash1.velocity = 0.5;
     scene.doIt = function() {
-        crash1.position.x += crash1.velocity;
-        crash1.__dirtyPosition = true;
+        //crash1.position.x += crash1.velocity;
+        //crash1.__dirtyPosition = true;
     };
     scene.add(crash1);
 }

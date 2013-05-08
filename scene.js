@@ -8,10 +8,53 @@ function initScene(camera) {
     scene.add(compass);
     scene.add(building());
     scene.add(bouncingBall());
+    scene.add(gun());
     crashing(scene);
 
     return scene;
 }
+
+function gun() {
+    var turretGeom = new THREE.CylinderGeometry(0.2, 0.2, 3, 32, 16, true);
+    var turretMaterial = new THREE.MeshPhongMaterial({
+        color: 0x867D7D, specular: 0x866C6C,
+        shininess: 30, opacity: 1
+    });
+    var turret = new THREE.Mesh(turretGeom, turretMaterial);
+    turret.position.x = 1.5;
+    turret.rotation.z = 1.57;
+
+    var turretEnd = new THREE.CylinderGeometry(0.1, 0.1, 0.2, 32, 16);
+    var turretEndMaterial = new THREE.MeshBasicMaterial({color: 0x0 });
+    var turretEndMesh = new THREE.Mesh(turretEnd, turretEndMaterial);
+    //turretEndMesh.position.set(0,5,0);
+    turretEndMesh.rotation.z = 1.57;
+    turretEndMesh.position.x = 2.9;
+
+
+
+    var ballGeom = new THREE.SphereGeometry(1, 32, 16);
+    var ballMaterial = new THREE.MeshPhongMaterial({
+        color: 0x867D7D, specular: 0x866C6C,
+        shininess: 30, opacity: 1
+    });
+    ball = new THREE.Mesh(ballGeom, ballMaterial);
+    ball.position.set(0,1,0);
+    ball.rotation.y = -1.57;
+    ball.add(turret);
+    ball.add(turretEndMesh);
+
+    var baseGeom = new THREE.CylinderGeometry(0, 1, 2, 32, 16);
+    var baseMaterial = new THREE.MeshPhongMaterial({
+        color: 0x3344E8, specular: 0x111111,
+        shininess: 30, opacity: 1
+    });
+    var baseMesh = new THREE.Mesh(baseGeom, baseMaterial);
+    baseMesh.position.set(15,0.5,0);
+    baseMesh.add(ball);
+    return baseMesh;
+}
+
 function createScene() {
     var scene = new Physijs.Scene;
     scene.setGravity(new THREE.Vector3(0, -30, 0));
@@ -113,8 +156,8 @@ function addLightsTo(scene) {
     scene.add(ambientLight);
     var hemisphere = new THREE.HemisphereLight(0xFFFFFF, 0xFFFFFF, 0.6);
     scene.add(hemisphere);
-    var pointLight = new THREE.PointLight(0xFFFFFF, 1.5, 50);
-    pointLight.position.set(0,10,0);
+    var pointLight = new THREE.DirectionalLight(0xFFFFFF, 1.5, 50);
+    pointLight.position.set(100,10,0);
     scene.add(pointLight);
     //var pointLight2= new THREE.DirectionalLight(0xFFFFFF, 1.5);// , 90);
     //pointLight2.position.set(50, 0, 0);
