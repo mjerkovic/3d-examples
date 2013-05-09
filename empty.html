@@ -1,0 +1,32 @@
+<html>
+	<head>
+		<script src="lib/three.min.js"></script>
+		<script>
+		    var camera, scene, renderer;
+
+		   	function setup() {
+			    init();
+		   	}
+
+		    function init() {
+		var target = new THREE.Vector3(0,0,20);
+		var base = new THREE.Vector3(15, 1, 0);
+		var heading = new THREE.Vector3(0,0,1);
+		var vectorToTarget = new THREE.Vector3().subVectors(target, base).normalize();
+		console.log("vectorToTarget = " + vectorToTarget.toArray());
+		var rotationAxis = new THREE.Vector3().crossVectors(vectorToTarget, heading);
+		var dot = vectorToTarget.dot(heading);
+		console.log("dot = " + dot);
+		var angle = -Math.acos(dot); 
+		console.log(Math.atan2(vectorToTarget.z, vectorToTarget.x));
+		console.log("angle = " + angle);
+		var matrix = new THREE.Matrix4().makeRotationAxis(rotationAxis, angle);
+		heading.applyMatrix4(matrix);
+		console.log("heading = " + heading.toArray());
+            }
+
+		</script>
+	</head>
+	<body onload="setup()">
+	</body>		
+</html>
