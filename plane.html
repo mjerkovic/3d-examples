@@ -4,10 +4,11 @@
 		<script src="lib/controls.js"></script>
 		<script src="lib/physi.js"></script>
 		<script src="lib/physijs_worker.js"></script>
-        <script src="lib/helvetiker_regular.typeface.js"></script>
         <script src="scene.js"></script>
 		<script>
-		    var camera, scene, renderer, compass, forward, controls, words, ball;
+		    var camera, scene, renderer, compass, controls, ball, clock, baseMesh;
+            var rotationsPerSecond = Math.PI / 2.0; // * (Math.PI / 180);
+            var target;
 
 		   	function setup() {
 			    init();
@@ -15,6 +16,7 @@
 		   	}
 
 		    function init() {
+                clock = new THREE.Clock();
 		    	Physijs.scripts.worker = 'lib/physijs_worker.js';
 				Physijs.scripts.ammo = 'ammo.js';
 
@@ -30,11 +32,6 @@
 
                 scene = initScene(camera);
 
-                /*var text = new THREE.TextGeometry("Hello", {font: 'helvetiker', size: 2, height: 1 });
-                var textWrapper = new THREE.MeshNormalMaterial({color: 0x00ff00});
-                words = new THREE.Mesh(text, textWrapper);
-                scene.add(words);*/
-
                 renderer = new THREE.WebGLRenderer({ antialias: true });
                 renderer.setSize( window.innerWidth, window.innerHeight );
                 renderer.setClearColor(0xDEDEDE);
@@ -42,19 +39,22 @@
             }
 
             function animate() {
-                //compass.translate.y -= compass.position.y;
-                //compass.rotation.x += 0.01;
-                //compass.rotation.y += 0.01;
-                controls.update(0.1);
+                var delta = clock.getDelta();
+                controls.update(0.2);
                 scene.simulate();
-                ball.rotation.y += 0.02
+                /*var vectorToTarget = new THREE.Vector3().subVectors(target.position, baseMesh.position).normalize();
+                var axis = new THREE.Vector3().crossVectors(vectorToTarget, ball.heading);
+                var angle = -Math.acos(vectorToTarget.dot(ball.heading));
+                ball.matrix.makeRotationAxis(axis, angle);
+                ball.matrixAutoUpdate = false;
+                ball.heading = vectorToTarget;*/
+                //ball.rotation.y =  ball.position.angleTo(target.position);
+                //ball.lookAt(target.position);
+
+                ball.rotation.y += rotationsPerSecond * delta;
+
                 scene.doIt();
-                /*		        if (forward) {
-		        	camera.position.z -= 0.3;
-		        }
-*/
 		        renderer.render( scene, camera );
-		        // note: three.js includes requestAnimationFrame shim
 		        requestAnimationFrame( animate );
 		    }
 		</script>
