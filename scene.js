@@ -2,8 +2,8 @@ function initScene(camera) {
     var scene = createScene();
     addLightsTo(scene);
     addGroundTo(scene);
-    walls(scene);
-    var compass = this.compass();
+    //walls(scene);
+    compass = this.compass();
     camera.lookAt(compass.position);
     scene.add(compass);
     scene.add(building());
@@ -17,7 +17,7 @@ function initScene(camera) {
 function gun() {
     var turretGeom = new THREE.CylinderGeometry(0.2, 0.2, 3, 32, 16);
     var turretMaterial = new THREE.MeshPhongMaterial({
-        color: 0x867D7D, specular: 0x866C6C,
+        color: 0x000000, specular: 0x866C6C,
         shininess: 30, opacity: 1
     });
     var turret = new THREE.Mesh(turretGeom, turretMaterial);
@@ -39,6 +39,8 @@ function gun() {
     ball = new THREE.Mesh(ballGeom, ballMaterial);
     ball.position.set(0,1,0);
     ball.rotation.y = 1.57;
+    //ball.matrixAutoUpdate = false;
+    ball.heading = new THREE.Vector3(0, 0, 1);
     ball.add(turret);
     ball.add(turretEndMesh);
 

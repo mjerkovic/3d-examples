@@ -21,7 +21,7 @@
 				Physijs.scripts.ammo = 'ammo.js';
 
 		        camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 500 );
-		        camera.position.set(0, 2, 30);
+		        camera.position.set(10, 2, 30);
     			camera.lookAt(new THREE.Vector3(0, 4, 0));
 
     			controls = new FirstPersonControls(camera);
@@ -51,7 +51,23 @@
                 //ball.rotation.y =  ball.position.angleTo(target.position);
                 //ball.lookAt(target.position);
 
-                ball.rotation.y += rotationsPerSecond * delta;
+                //ball.rotation.y += rotationsPerSecond * delta;
+
+                var vectorToTarget = new THREE.Vector3().subVectors(camera.position,
+                        new THREE.Vector3().getPositionFromMatrix(ball.parent.matrix)).normalize();
+                //var axis = new THREE.Vector3().crossVectors(vectorToTarget, ball.heading);
+                //axis.normalize();
+                var dot = vectorToTarget.dot(ball.heading);
+                var angle = Math.acos(dot);
+                //angle = Math.atan2(vectorToTarget.z, vectorToTarget.x) < 0 ? -angle : angle;
+                //var m = new THREE.Matrix4().makeTranslation(0, 1, 0);
+                //m.multiply(new THREE.Matrix4().makeRotationAxis(axis, angle));
+                //ball.matrix = m; //.makeRotationAxis(axis, 0.1).multiply(m);
+                //ball.matrixAutoUpdate = false;
+                //ball.matrix.makeRotationAxis(new THREE.Vector3(0,1,0), angle);
+                ball.rotation.y = -angle;
+                //ball.updateMatrix();
+                //ball.heading.applyMatrix4(m).normalize();
 
                 scene.doIt();
 		        renderer.render( scene, camera );
