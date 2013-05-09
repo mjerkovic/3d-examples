@@ -48,7 +48,7 @@ function gun() {
         shininess: 30, opacity: 1
     });
     baseMesh = new THREE.Mesh(baseGeom, baseMaterial);
-    baseMesh.position.set(15,0.5,0);
+    baseMesh.position.set(15, 0, 0);
     baseMesh.add(ball);
     return baseMesh;
 }
