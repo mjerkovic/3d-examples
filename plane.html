@@ -59,13 +59,12 @@
                 //axis.normalize();
                 var dot = vectorToTarget.dot(ball.heading);
                 var angle = Math.acos(dot);
-                //angle = Math.atan2(vectorToTarget.z, vectorToTarget.x) < 0 ? -angle : angle;
                 //var m = new THREE.Matrix4().makeTranslation(0, 1, 0);
                 //m.multiply(new THREE.Matrix4().makeRotationAxis(axis, angle));
                 //ball.matrix = m; //.makeRotationAxis(axis, 0.1).multiply(m);
                 //ball.matrixAutoUpdate = false;
                 //ball.matrix.makeRotationAxis(new THREE.Vector3(0,1,0), angle);
-                ball.rotation.y = -angle;
+                ball.rotation.y = vectorToTarget.x < 0 ? -angle : angle;
                 //ball.updateMatrix();
                 //ball.heading.applyMatrix4(m).normalize();
 

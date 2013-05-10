@@ -24,16 +24,15 @@ function gun() {
     turret.position.z = 1.5;
     turret.rotation.x = 1.57;
 
-    var turretEnd = new THREE.CylinderGeometry(0.1, 0.1, 0.2, 32, 16);
-    var turretEndMaterial = new THREE.MeshBasicMaterial({color: 0x0 });
-    var turretEndMesh = new THREE.Mesh(turretEnd, turretEndMaterial);
-    //turretEndMesh.position.set(0,5,0);
-    turretEndMesh.rotation.x = 1.57;
-    turretEndMesh.position.z = 3;
+    var barrelGeom = new THREE.CylinderGeometry(0.1, 0.1, 3, 32, 16);
+    var barrelMaterial = new THREE.MeshBasicMaterial({color: 0x0 });
+    var barrel = new THREE.Mesh(barrelGeom, barrelMaterial);
+    barrel.position.z = 1.51;
+    barrel.rotation.x = 1.57;
 
     var ballGeom = new THREE.SphereGeometry(1, 32, 16);
     var ballMaterial = new THREE.MeshPhongMaterial({
-        color: 0x867D7D, specular: 0x866C6C,
+        color: 0x000000, specular: 0x866C6C,
         shininess: 30, opacity: 1
     });
     ball = new THREE.Mesh(ballGeom, ballMaterial);
@@ -42,7 +41,7 @@ function gun() {
     //ball.matrixAutoUpdate = false;
     ball.heading = new THREE.Vector3(0, 0, 1);
     ball.add(turret);
-    ball.add(turretEndMesh);
+    ball.add(barrel);
 
     var baseGeom = new THREE.CylinderGeometry(0, 1, 2, 32, 16);
     var baseMaterial = new THREE.MeshPhongMaterial({
