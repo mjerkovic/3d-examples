@@ -55,10 +55,7 @@
 
                 var vectorToTarget = new THREE.Vector3().subVectors(camera.position,
                         new THREE.Vector3().getPositionFromMatrix(ball.parent.matrix)).normalize();
-                //var axis = new THREE.Vector3().crossVectors(vectorToTarget, ball.heading);
-                //axis.normalize();
-                var dot = vectorToTarget.dot(ball.heading);
-                var angle = Math.acos(dot);
+                var angle = vectorToTarget.angleTo(ball.heading);// Math.acos(dot);
                 //var m = new THREE.Matrix4().makeTranslation(0, 1, 0);
                 //m.multiply(new THREE.Matrix4().makeRotationAxis(axis, angle));
                 //ball.matrix = m; //.makeRotationAxis(axis, 0.1).multiply(m);
