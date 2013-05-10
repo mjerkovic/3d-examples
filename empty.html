@@ -3,26 +3,87 @@
 		<script src="lib/three.min.js"></script>
 		<script>
 		    var camera, scene, renderer;
+		    var mesh, handle;
+		    var angle = 0;
 
 		   	function setup() {
 			    init();
+			    animate();
+		   	}
+
+		   	function animate() {
+		   		//mesh.updateMatrix();
+		   		//mesh.rotation.y += 0.05;
+		   		angle += 0.01;
+				var m = new THREE.Matrix4().makeTranslation(0, 1, -20);
+				var n = new THREE.Matrix4().makeRotationAxis(new THREE.Vector3(0.7071, 0.7071, 0.7071), angle);
+				m.multiply(n);
+				mesh.matrix = m;	
+				mesh.updateMatrixWorld(true);
+
+		   		//mesh.rotation.z += 0.05;
+		   		renderer.render(scene, camera);
+		   		requestAnimationFrame(animate);
 		   	}
 
 		    function init() {
-		var target = new THREE.Vector3(0,0,20);
-		var base = new THREE.Vector3(15, 1, 0);
-		var heading = new THREE.Vector3(0,0,1);
-		var vectorToTarget = new THREE.Vector3().subVectors(target, base).normalize();
-		console.log("vectorToTarget = " + vectorToTarget.toArray());
-		var rotationAxis = new THREE.Vector3().crossVectors(vectorToTarget, heading);
-		var dot = vectorToTarget.dot(heading);
-		console.log("dot = " + dot);
-		var angle = -Math.acos(dot); 
-		console.log(Math.atan2(vectorToTarget.z, vectorToTarget.x));
-		console.log("angle = " + angle);
-		var matrix = new THREE.Matrix4().makeRotationAxis(rotationAxis, angle);
-		heading.applyMatrix4(matrix);
-		console.log("heading = " + heading.toArray());
+		        camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 10000 );
+    			camera.lookAt(new THREE.Vector3(0, 0, -1));
+
+		        scene = new THREE.Scene();
+
+		        var groundGeom = new THREE.CubeGeometry(200, 1, 200, 20, 20);
+		        var groundMaterial = new THREE.MeshNormalMaterial({ color: 0x000000 }); //wireframe: true });
+		        var ground = new THREE.Mesh( groundGeom, groundMaterial );
+				ground.position.y = -0.5;
+		        scene.add(ground);
+
+				var ambientLight = new THREE.AmbientLight( 0x222222 );
+ 
+				var light = new THREE.DirectionalLight( 0xffffff, 1.0 );
+				light.position.set( 200, 400, 500 );
+				
+				var light2 = new THREE.DirectionalLight( 0xffffff, 1.0 );
+				light2.position.set( -500, 250, -200 );
+ 
+				scene.add(ambientLight);
+				scene.add(light);
+				scene.add(light2);				
+
+				var material = new THREE.MeshNormalMaterial({ color: 0x0000FF });
+				var handleGeom = new THREE.CylinderGeometry(0.5, 0.5, 3, 16, 16);
+				handle = new THREE.Mesh(handleGeom, material);
+				handle.rotation.z = 90 * (Math.PI / 180);
+				handle.position.y = 0.25;
+				handle.position.x = 1.5;
+				var geometry = new THREE.SphereGeometry(2, 32, 16);
+				mesh = new THREE.Mesh(geometry, material);
+				//mesh.position.set(0, 1, -20);
+				mesh.matrixAutoUpdate = false;
+				mesh.add(handle);
+				scene.add(mesh);
+				//scene.add(handle);
+
+		        renderer = new THREE.CanvasRenderer();
+		        renderer.setSize( window.innerWidth, window.innerHeight );
+		        document.body.appendChild( renderer.domElement );
+            }
+
+            function rotationTest() {
+				var target = new THREE.Vector3(0,0,20);
+				var base = new THREE.Vector3(15, 1, 0);
+				var heading = new THREE.Vector3(0,0,1);
+				var vectorToTarget = new THREE.Vector3().subVectors(target, base).normalize();
+				console.log("vectorToTarget = " + vectorToTarget.toArray());
+				var rotationAxis = new THREE.Vector3().crossVectors(vectorToTarget, heading);
+				var dot = vectorToTarget.dot(heading);
+				console.log("dot = " + dot);
+				var angle = -Math.acos(dot); 
+				console.log(Math.atan2(vectorToTarget.z, vectorToTarget.x));
+				console.log("angle = " + angle);
+				var matrix = new THREE.Matrix4().makeRotationAxis(rotationAxis, angle);
+				heading.applyMatrix4(matrix);
+				console.log("heading = " + heading.toArray());            	
             }
 
 		</script>
