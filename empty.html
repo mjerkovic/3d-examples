@@ -16,7 +16,7 @@
 		   		//mesh.rotation.y += 0.05;
 		   		angle += 0.01;
 				var m = new THREE.Matrix4().makeTranslation(0, 1, -20);
-				var n = new THREE.Matrix4().makeRotationAxis(new THREE.Vector3(0.7071, 0.7071, 0.7071), angle);
+				var n = new THREE.Matrix4().makeRotationAxis(new THREE.Vector3(0.7071, 0.7071, 0), angle);
 				m.multiply(n);
 				mesh.matrix = m;	
 				mesh.updateMatrixWorld(true);

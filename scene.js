@@ -16,26 +16,27 @@ function initScene(camera) {
 
 function gun() {
     var turretGeom = new THREE.CylinderGeometry(0.2, 0.2, 3, 32, 16);
-    var turretMaterial = new THREE.MeshPhongMaterial({
+    var turretMaterial = new Physijs.createMaterial(new THREE.MeshPhongMaterial({
         color: 0x000000, specular: 0x866C6C,
         shininess: 30, opacity: 1
-    });
-    var turret = new THREE.Mesh(turretGeom, turretMaterial);
+    }), 1, 1);
+    var turret = new Physijs.CylinderMesh(turretGeom, turretMaterial, 1000);
     turret.position.z = 1.5;
     turret.rotation.x = 1.57;
 
     var barrelGeom = new THREE.CylinderGeometry(0.1, 0.1, 3, 32, 16);
-    var barrelMaterial = new THREE.MeshBasicMaterial({color: 0x0 });
-    var barrel = new THREE.Mesh(barrelGeom, barrelMaterial);
+    var barrelMaterial = new Physijs.createMaterial(
+        new THREE.MeshBasicMaterial({color: 0x0 }), 1, 1);
+    var barrel = new Physijs.CylinderMesh(barrelGeom, barrelMaterial, 1000);
     barrel.position.z = 1.51;
     barrel.rotation.x = 1.57;
 
     var ballGeom = new THREE.SphereGeometry(1, 32, 16);
-    var ballMaterial = new THREE.MeshPhongMaterial({
+    var ballMaterial = new Physijs.createMaterial(new THREE.MeshPhongMaterial({
         color: 0x000000, specular: 0x866C6C,
         shininess: 30, opacity: 1
-    });
-    ball = new THREE.Mesh(ballGeom, ballMaterial);
+    }), 1, 1);
+    ball = new Physijs.SphereMesh(ballGeom, ballMaterial, 1000);
     ball.position.set(0,1,0);
     ball.rotation.y = 1.57;
     //ball.matrixAutoUpdate = false;
@@ -49,7 +50,7 @@ function gun() {
         shininess: 30, opacity: 1
     });
     baseMesh = new THREE.Mesh(baseGeom, baseMaterial);
-    baseMesh.position.set(15, 0, 0);
+    baseMesh.position.set(15, 0, 0.5);
     baseMesh.add(ball);
     return baseMesh;
 }
