@@ -27,8 +27,8 @@
     			controls = new FirstPersonControls(camera);
     			controls.target = new THREE.Vector3(0, 4, 0);
     			controls.movementSpeed = 2;
-    			controls.noFly = true;
-    			controls.lookVertical = false;
+    			controls.noFly = false;
+    			controls.lookVertical = true;
 
                 scene = initScene(camera);
 
@@ -42,33 +42,31 @@
                 var delta = clock.getDelta();
                 controls.update(0.2);
                 scene.simulate();
-                /*var vectorToTarget = new THREE.Vector3().subVectors(target.position, baseMesh.position).normalize();
-                var axis = new THREE.Vector3().crossVectors(vectorToTarget, ball.heading);
-                var angle = -Math.acos(vectorToTarget.dot(ball.heading));
-                ball.matrix.makeRotationAxis(axis, angle);
-                ball.matrixAutoUpdate = false;
-                ball.heading = vectorToTarget;*/
-                //ball.rotation.y =  ball.position.angleTo(target.position);
-                //ball.lookAt(target.position);
-
-                //ball.rotation.y += rotationsPerSecond * delta;
 
                 var vectorToTarget = new THREE.Vector3().subVectors(camera.position,
-                        new THREE.Vector3().getPositionFromMatrix(ball.parent.matrix)).normalize();
-                var angle = vectorToTarget.angleTo(ball.heading);// Math.acos(dot);
-                //var m = new THREE.Matrix4().makeTranslation(0, 1, 0);
-                //m.multiply(new THREE.Matrix4().makeRotationAxis(axis, angle));
-                //ball.matrix = m; //.makeRotationAxis(axis, 0.1).multiply(m);
-                //ball.matrixAutoUpdate = false;
-                //ball.matrix.makeRotationAxis(new THREE.Vector3(0,1,0), angle);
-                ball.rotation.y = vectorToTarget.x < 0 ? -angle : angle;
-                //ball.updateMatrix();
-                //ball.heading.applyMatrix4(m).normalize();
+                        ball.parent.position).normalize();
+                var angle = Math.acos(vectorToTarget.dot(new THREE.Vector3(0,0,1).normalize()));
+                //yRotationOnly(vectorToTarget, angle);
+                rotatingAroundAxis(vectorToTarget, angle);
 
                 scene.doIt();
-		        renderer.render( scene, camera );
+                renderer.render( scene, camera );
 		        requestAnimationFrame( animate );
 		    }
+
+            function rotatingAroundAxis(vectorToTarget, angle) {
+                var translate = new THREE.Matrix4().makeTranslation(0, 1, 0);
+                var axis = new THREE.Vector3().crossVectors(vectorToTarget,
+                        new THREE.Vector3(0, 0, 1)).normalize().negate();
+                var rotate = new THREE.Matrix4().makeRotationAxis(axis, angle);
+                var matrix = new THREE.Matrix4().multiplyMatrices(translate, rotate);
+                ball.matrix = matrix;
+                ball.updateMatrixWorld(true);
+            }
+
+            function yRotationOnly(vectorToTarget, angle) {
+                ball.rotation.y = vectorToTarget.x < 0 ? -angle : angle;
+            }
 		</script>
 	</head>
 	<body onload="setup()">

@@ -37,10 +37,10 @@ function gun() {
         shininess: 30, opacity: 1
     }), 1, 1);
     ball = new Physijs.SphereMesh(ballGeom, ballMaterial, 1000);
-    ball.position.set(0,1,0);
-    ball.rotation.y = 1.57;
-    //ball.matrixAutoUpdate = false;
-    ball.heading = new THREE.Vector3(0, 0, 1);
+    //ball.position.set(0,1,0);
+    //ball.rotation.y = 1.57;
+    ball.matrixAutoUpdate = false;
+    //ball.heading = new THREE.Vector3(0, 0, 1);
     ball.add(turret);
     ball.add(barrel);
 
@@ -50,7 +50,7 @@ function gun() {
         shininess: 30, opacity: 1
     });
     baseMesh = new THREE.Mesh(baseGeom, baseMaterial);
-    baseMesh.position.set(15, 0, 0.5);
+    baseMesh.position.set(15, 0, 1.5);
     baseMesh.add(ball);
     return baseMesh;
 }
