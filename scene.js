@@ -8,13 +8,18 @@ function initScene(camera) {
     scene.add(compass);
     scene.add(building());
     scene.add(bouncingBall());
-    scene.add(gun());
+    var gun1 = gun("gun1", new THREE.Vector3(15, 0, 1.5));
+    ball = gun1.getChildByName("gun1");
+    scene.add(gun1);
+    var gun2 = gun("gun2", new THREE.Vector3(10, 9, -51));
+    ball2 = gun2.getChildByName("gun2");
+    scene.add(gun2);
     crashing(scene);
 
     return scene;
 }
 
-function gun() {
+function gun(name, position) {
     var turretGeom = new THREE.CylinderGeometry(0.2, 0.2, 3, 32, 16);
     var turretMaterial = new Physijs.createMaterial(new THREE.MeshPhongMaterial({
         color: 0x000000, specular: 0x866C6C,
@@ -36,11 +41,9 @@ function gun() {
         color: 0x000000, specular: 0x866C6C,
         shininess: 30, opacity: 1
     }), 1, 1);
-    ball = new Physijs.SphereMesh(ballGeom, ballMaterial, 1000);
-    //ball.position.set(0,1,0);
-    //ball.rotation.y = 1.57;
+    var ball = new Physijs.SphereMesh(ballGeom, ballMaterial, 1000);
+    ball.name = name;
     ball.matrixAutoUpdate = false;
-    //ball.heading = new THREE.Vector3(0, 0, 1);
     ball.add(turret);
     ball.add(barrel);
 
@@ -50,8 +53,8 @@ function gun() {
         shininess: 30, opacity: 1
     });
     baseMesh = new THREE.Mesh(baseGeom, baseMaterial);
-    baseMesh.position.set(15, 0, 1.5);
     baseMesh.add(ball);
+    baseMesh.position.copy(position);
     return baseMesh;
 }
 
@@ -147,7 +150,7 @@ function building() {
     var building = new THREE.Mesh(buildingGeometry, new Physijs.createMaterial(
         new THREE.MeshPhongMaterial({ color: 0x25256F,
             specular: 0x20205F, shininess: 90 }), .8, 0.1));
-    building.position.set(10, 5, -60);
+    building.position.set(10, 3, -60);
     return building;
 }
 

@@ -6,9 +6,9 @@
 		<script src="lib/physijs_worker.js"></script>
         <script src="scene.js"></script>
 		<script>
-		    var camera, scene, renderer, compass, controls, ball, clock, baseMesh;
+		    var camera, scene, renderer, compass, controls, clock, baseMesh;
             var rotationsPerSecond = Math.PI / 2.0; // * (Math.PI / 180);
-            var target;
+            var target, ball, ball2;
 
 		   	function setup() {
 			    init();
@@ -43,28 +43,32 @@
                 controls.update(0.2);
                 scene.simulate();
 
-                var vectorToTarget = new THREE.Vector3().subVectors(camera.position,
-                        ball.parent.position).normalize();
-                var angle = Math.acos(vectorToTarget.dot(new THREE.Vector3(0,0,1).normalize()));
-                //yRotationOnly(vectorToTarget, angle);
-                rotatingAroundAxis(vectorToTarget, angle);
+                //yRotationOnly();
+                rotatingAroundAxis(ball);
+                rotatingAroundAxis(ball2);
 
                 scene.doIt();
                 renderer.render( scene, camera );
 		        requestAnimationFrame( animate );
 		    }
 
-            function rotatingAroundAxis(vectorToTarget, angle) {
+            function rotatingAroundAxis(gun) {
+                var vectorToTarget = new THREE.Vector3().subVectors(camera.position,
+                        gun.parent.position).normalize();
+                var angle = Math.acos(vectorToTarget.dot(new THREE.Vector3(0,0,1).normalize()));
                 var translate = new THREE.Matrix4().makeTranslation(0, 1, 0);
                 var axis = new THREE.Vector3().crossVectors(vectorToTarget,
                         new THREE.Vector3(0, 0, 1)).normalize().negate();
                 var rotate = new THREE.Matrix4().makeRotationAxis(axis, angle);
                 var matrix = new THREE.Matrix4().multiplyMatrices(translate, rotate);
-                ball.matrix = matrix;
-                ball.updateMatrixWorld(true);
+                gun.matrix = matrix;
+                gun.updateMatrixWorld(true);
             }
 
-            function yRotationOnly(vectorToTarget, angle) {
+            function yRotationOnly() {
+                var vectorToTarget = new THREE.Vector3().subVectors(camera.position,
+                        ball.parent.position).normalize();
+                var angle = Math.acos(vectorToTarget.dot(new THREE.Vector3(0,0,1).normalize()));
                 ball.rotation.y = vectorToTarget.x < 0 ? -angle : angle;
             }
 		</script>
