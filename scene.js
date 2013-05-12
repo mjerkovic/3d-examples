@@ -8,18 +8,32 @@ function initScene(camera) {
     scene.add(compass);
     scene.add(building());
     scene.add(bouncingBall());
-    var gun1 = gun("gun1", new THREE.Vector3(15, 0, 1.5));
-    ball = gun1.getChildByName("gun1");
+    var gun1 = gun(new THREE.Vector3(15, 0, 1.5));
+    world.objects.push(gun1);
     scene.add(gun1);
-    var gun2 = gun("gun2", new THREE.Vector3(10, 9, -51));
-    ball2 = gun2.getChildByName("gun2");
+    var gun2 = gun(new THREE.Vector3(10, 9, -51));
+    world.objects.push(gun2);
     scene.add(gun2);
     crashing(scene);
 
     return scene;
 }
 
-function gun(name, position) {
+function trackTarget(gun) {
+    var vectorToTarget = new THREE.Vector3().subVectors(camera.position, gun.position).normalize();
+    var angle = Math.acos(vectorToTarget.dot(new THREE.Vector3(0,0,1).normalize()));
+    var translate = new THREE.Matrix4().makeTranslation(0, 1, 0);
+    var axis = new THREE.Vector3().crossVectors(vectorToTarget,
+        new THREE.Vector3(0, 0, 1)).normalize().negate();
+    var rotate = new THREE.Matrix4().makeRotationAxis(axis, angle);
+    var matrix = new THREE.Matrix4().multiplyMatrices(translate, rotate);
+    var turret = gun.getObjectByName("turret");
+    turret.matrix = matrix;
+    turret.updateMatrixWorld(true);
+}
+
+
+function gun(position) {
     var turretGeom = new THREE.CylinderGeometry(0.2, 0.2, 3, 32, 16);
     var turretMaterial = new Physijs.createMaterial(new THREE.MeshPhongMaterial({
         color: 0x000000, specular: 0x866C6C,
@@ -42,7 +56,7 @@ function gun(name, position) {
         shininess: 30, opacity: 1
     }), 1, 1);
     var ball = new Physijs.SphereMesh(ballGeom, ballMaterial, 1000);
-    ball.name = name;
+    ball.name = "turret";
     ball.matrixAutoUpdate = false;
     ball.add(turret);
     ball.add(barrel);
@@ -55,6 +69,9 @@ function gun(name, position) {
     baseMesh = new THREE.Mesh(baseGeom, baseMaterial);
     baseMesh.add(ball);
     baseMesh.position.copy(position);
+    baseMesh.update = function() {
+        trackTarget(this);
+    };
     return baseMesh;
 }
 

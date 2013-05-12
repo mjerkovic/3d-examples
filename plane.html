@@ -9,6 +9,7 @@
 		    var camera, scene, renderer, compass, controls, clock, baseMesh;
             var rotationsPerSecond = Math.PI / 2.0; // * (Math.PI / 180);
             var target, ball, ball2;
+            var world = {};
 
 		   	function setup() {
 			    init();
@@ -16,6 +17,7 @@
 		   	}
 
 		    function init() {
+                world.objects = [];
                 clock = new THREE.Clock();
 		    	Physijs.scripts.worker = 'lib/physijs_worker.js';
 				Physijs.scripts.ammo = 'ammo.js';
@@ -44,14 +46,18 @@
                 scene.simulate();
 
                 //yRotationOnly();
-                rotatingAroundAxis(ball);
-                rotatingAroundAxis(ball2);
+                //rotatingAroundAxis(ball);
+                //rotatingAroundAxis(ball2);
+                world.objects.forEach(function (obj) {
+                    obj.update();
+                });
 
                 scene.doIt();
                 renderer.render( scene, camera );
 		        requestAnimationFrame( animate );
 		    }
 
+/*
             function rotatingAroundAxis(gun) {
                 var vectorToTarget = new THREE.Vector3().subVectors(camera.position,
                         gun.parent.position).normalize();
@@ -64,6 +70,7 @@
                 gun.matrix = matrix;
                 gun.updateMatrixWorld(true);
             }
+*/
 
             function yRotationOnly() {
                 var vectorToTarget = new THREE.Vector3().subVectors(camera.position,
