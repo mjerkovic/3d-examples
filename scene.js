@@ -3,20 +3,40 @@ function initScene(camera) {
     addLightsTo(scene);
     addGroundTo(scene);
     //walls(scene);
-    compass = this.compass();
+    var compass = this.compass();
     camera.lookAt(compass.position);
     scene.add(compass);
     scene.add(building());
     scene.add(bouncingBall());
-    var gun1 = gun(new THREE.Vector3(15, 0, 1.5));
+    var gun1 = gun(new THREE.Vector3(15, 0, 1.5), "sounds/m16.mp3");
     world.objects.push(gun1);
     scene.add(gun1);
-    var gun2 = gun(new THREE.Vector3(10, 9, -51));
+    var gun2 = gun(new THREE.Vector3(10, 9, -51), "sounds/cannon.mp3");
+    gun2.firingSound = cannonSound();
+    gun2.lastFired = Date.now();
+    gun2.update = function() {
+        trackTarget(this);
+        var now = Date.now();
+        if (now - this.lastFired > 3000) {
+            this.firingSound.volume = Math.min(Math.max(0, (10 / this.position.distanceTo(camera.position))), 1);
+            console.log(this.firingSound.volume);
+            this.firingSound.play();
+            this.lastFired = now;
+        }
+    };
     world.objects.push(gun2);
     scene.add(gun2);
     crashing(scene);
 
     return scene;
+}
+
+function cannonSound() {
+    var sound = new Audio("sounds/cannon.mp3");
+    sound.addEventListener("ended", function () {
+        sound.currentTime = 0;
+    }, false);
+    return sound;
 }
 
 function trackTarget(gun) {
@@ -32,8 +52,7 @@ function trackTarget(gun) {
     turret.updateMatrixWorld(true);
 }
 
-
-function gun(position) {
+function gun(position, soundName) {
     var turretGeom = new THREE.CylinderGeometry(0.2, 0.2, 3, 32, 16);
     var turretMaterial = new Physijs.createMaterial(new THREE.MeshPhongMaterial({
         color: 0x000000, specular: 0x866C6C,
