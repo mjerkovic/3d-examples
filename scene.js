@@ -8,10 +8,10 @@ function initScene(camera) {
     scene.add(compass);
     scene.add(building());
     scene.add(bouncingBall());
-    var gun1 = gun(new THREE.Vector3(15, 0, 1.5), "sounds/m16.mp3");
+    var gun1 = gun(new THREE.Vector3(15, 0, 1.5), "gun1");
     world.objects.push(gun1);
     scene.add(gun1);
-    var gun2 = gun(new THREE.Vector3(10, 9, -51), "sounds/cannon.mp3");
+    var gun2 = gun(new THREE.Vector3(10, 9, -51), "gun2");
     gun2.firingSound = cannonSound();
     gun2.lastFired = Date.now();
     gun2.update = function() {
@@ -27,8 +27,57 @@ function initScene(camera) {
     world.objects.push(gun2);
     scene.add(gun2);
     crashing(scene);
-
     return scene;
+}
+
+function shootBullet() {
+    var gun = scene.getObjectByName("gun1", true);
+    var bullet = this.bullet(gun);
+    bullet.rotation.x = 1.57;
+    bullet.matrixAutoUpdate = false;
+    bullet.owner = gun;
+    var pos = new THREE.Vector3().copy(gun.position);
+    pos.y += 1;
+    bullet.position.copy(pos);
+    world.objects.push(bullet);
+    bullet.update = function() {
+        if (this.heading) {
+            var newPos = new THREE.Vector3().getPositionFromMatrix(this.matrix);
+            var delta = new THREE.Vector3().copy(this.heading).multiplyScalar(0.1);
+            newPos.add(delta);
+            this.matrix.setPosition(newPos);
+        } else {
+            var vectorToTarget = new THREE.Vector3().subVectors(camera.position, bullet.owner.position).normalize();
+            var angle = Math.acos(vectorToTarget.dot(new THREE.Vector3(0,0,1).normalize()));
+            var axis = new THREE.Vector3().crossVectors(vectorToTarget, new THREE.Vector3(0, 0, 1)).normalize().negate();
+            var translate = new THREE.Matrix4().makeTranslation(this.owner.position.x, this.owner.position.y + 1, this.owner.position.z);
+            var orientate = new THREE.Matrix4().makeRotationX(1.57);
+            var rotate = new THREE.Matrix4().makeRotationAxis(axis, angle).multiply(orientate);
+            var matrix = new THREE.Matrix4().multiplyMatrices(translate, rotate);
+            this.heading = new THREE.Vector3(0, 0, 1).applyMatrix4(matrix).normalize();
+            this.matrix = matrix;
+
+            var start = new THREE.Vector3(this.owner.position.x, this.owner.position.y + 1, this.owner.position.z);
+            var end = new THREE.Vector3().copy(start).add(new THREE.Vector3().copy(this.heading).multiplyScalar(10));
+            var g = new THREE.Geometry();
+            g.vertices.push(start);
+            g.vertices.push(end);
+            var m = new THREE.MeshBasicMaterial({ color: 0xFF0000 });
+            var line = new THREE.Line(g, m);
+            scene.add(line);
+        }
+        this.updateMatrixWorld(true);
+    };
+    scene.add(bullet);
+}
+
+function bullet(shooter) {
+    var bulletGeom = new THREE.CylinderGeometry(0.1, 0.1, 0.3, 32, 16);
+    var bulletMaterial = new THREE.MeshPhongMaterial({
+        color: 0xF7A30B, specular: 0x111111, shininess: 90
+    });
+    var bullet = new THREE.Mesh(bulletGeom, bulletMaterial);
+    return bullet;
 }
 
 function cannonSound() {
@@ -41,7 +90,7 @@ function cannonSound() {
 
 function trackTarget(gun) {
     var vectorToTarget = new THREE.Vector3().subVectors(camera.position, gun.position).normalize();
-    var angle = Math.acos(vectorToTarget.dot(new THREE.Vector3(0,0,1).normalize()));
+    var angle = Math.acos(vectorToTarget.dot(new THREE.Vector3(0, 0, 1).normalize()));
     var translate = new THREE.Matrix4().makeTranslation(0, 1, 0);
     var axis = new THREE.Vector3().crossVectors(vectorToTarget,
         new THREE.Vector3(0, 0, 1)).normalize().negate();
@@ -52,11 +101,11 @@ function trackTarget(gun) {
     turret.updateMatrixWorld(true);
 }
 
-function gun(position, soundName) {
+function gun(position, name) {
     var turretGeom = new THREE.CylinderGeometry(0.2, 0.2, 3, 32, 16);
     var turretMaterial = new Physijs.createMaterial(new THREE.MeshPhongMaterial({
         color: 0x000000, specular: 0x866C6C,
-        shininess: 30, opacity: 1
+        shininess: 30, opacity: 1, wireframe: true
     }), 1, 1);
     var turret = new Physijs.CylinderMesh(turretGeom, turretMaterial, 1000);
     turret.position.z = 1.5;
@@ -64,15 +113,16 @@ function gun(position, soundName) {
 
     var barrelGeom = new THREE.CylinderGeometry(0.1, 0.1, 3, 32, 16);
     var barrelMaterial = new Physijs.createMaterial(
-        new THREE.MeshBasicMaterial({color: 0x0 }), 1, 1);
+        new THREE.MeshBasicMaterial({color: 0x0, wireframe: true  }), 1, 1);
     var barrel = new Physijs.CylinderMesh(barrelGeom, barrelMaterial, 1000);
     barrel.position.z = 1.51;
     barrel.rotation.x = 1.57;
+    barrel.name = "barrel";
 
     var ballGeom = new THREE.SphereGeometry(1, 32, 16);
     var ballMaterial = new Physijs.createMaterial(new THREE.MeshPhongMaterial({
         color: 0x000000, specular: 0x866C6C,
-        shininess: 30, opacity: 1
+        shininess: 30, opacity: 1, wireframe: true
     }), 1, 1);
     var ball = new Physijs.SphereMesh(ballGeom, ballMaterial, 1000);
     ball.name = "turret";
@@ -83,10 +133,11 @@ function gun(position, soundName) {
     var baseGeom = new THREE.CylinderGeometry(0, 1, 2, 32, 16);
     var baseMaterial = new THREE.MeshPhongMaterial({
         color: 0x3344E8, specular: 0x111111,
-        shininess: 30, opacity: 1
+        shininess: 30, opacity: 1, wireframe: true
     });
     baseMesh = new THREE.Mesh(baseGeom, baseMaterial);
     baseMesh.add(ball);
+    baseMesh.name = name;
     baseMesh.position.copy(position);
     baseMesh.update = function() {
         trackTarget(this);
@@ -167,7 +218,7 @@ function crashing(scene) {
 function addGroundTo(scene) {
     var groundGeometry = new THREE.CubeGeometry(1000, 1, 1000, 100, 1, 100);
     var groundMaterial = new Physijs.createMaterial(
-        new THREE.MeshLambertMaterial({ map: THREE.ImageUtils.loadTexture( 'images/rocks.jpg' ) }),
+        new THREE.MeshLambertMaterial({ map: THREE.ImageUtils.loadTexture( 'images/rocks.jpg' ), wireframe: true }),
         .8, // high friction
         .3 // low restitution
     );
