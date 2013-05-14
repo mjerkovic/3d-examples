@@ -27,6 +27,7 @@
 
 		   	function anim() {
 		   		controls.update(0.2);
+		   		t.position.z += 0.1;
 		   		renderer.render(scene, camera);
 		   		requestAnimationFrame(anim);
 		   	}
@@ -84,11 +85,27 @@
 
 		        var targetLine = new THREE.Geometry();
 		        targetLine.vertices.push(new THREE.Vector3(0, 0, 0));
-		        var destination = new THREE.Vector3(0, 0, 0).add(heading.multiplyScalar(100));
+		        var h = new THREE.Vector3().copy(heading);
+		        var destination = new THREE.Vector3(0, 0, 0).add(h.multiplyScalar(75));
 		        targetLine.vertices.push(destination);
 		        var targetMaterial = new THREE.LineBasicMaterial({ color: 0x00FF00, linewidth: 3 });
 		        var line5 = new THREE.Line(targetLine, targetMaterial);
 		        scene.add(line5);
+		        
+		        var targetGeom = new THREE.CylinderGeometry(1, 1, 20, 16, 16);
+		        var targetM = new THREE.MeshBasicMaterial({ color: 0x00FF00 });
+		        t = new THREE.Mesh(targetGeom, targetM);
+		        t.rotation.x = 1.57;
+		        t.position.z = 10;
+		        var final = new THREE.Object3D();
+		        final.add(t);
+		        final.matrixAutoUpdate = false;
+		        //console.log(heading);
+		        //var rot = new THREE.Matrix4().multiplyMatrices(rotate, new THREE.Matrix4().makeRotationX(1.57));
+		        //var nt = heading.multiplyScalar(10);
+		        //var trans = new THREE.Matrix4().makeTranslation(nt.x * 2, nt.y * 2, nt.z * 2);
+		        final.matrix = rotate;
+		        scene.add(final);
 
 
 		        renderer = new THREE.CanvasRenderer();
