@@ -8,46 +8,43 @@ function initScene(camera) {
     scene.add(compass);
     scene.add(building());
     scene.add(bouncingBall());
-    var gun1 = gun(new THREE.Vector3(15, 0, 1.5), "gun1");
+    var gun1 = createGun(new THREE.Vector3(15, 0, 1.5), "gun1");
     world.objects.push(gun1);
     scene.add(gun1);
-    var gun2 = gun(new THREE.Vector3(10, 9, -51), "gun2");
+    var gun2 = createGun(new THREE.Vector3(10, 9, -51), "gun2");
     gun2.firingSound = cannonSound();
-    gun2.lastFired = Date.now();
-    gun2.update = function() {
-        trackTarget(this);
-        var now = Date.now();
-        if (now - this.lastFired > 3000) {
-            this.firingSound.volume = Math.min(Math.max(0, (10 / this.position.distanceTo(camera.position))), 1);
-            console.log(this.firingSound.volume);
-            this.firingSound.play();
-            this.lastFired = now;
-        }
-    };
     world.objects.push(gun2);
     scene.add(gun2);
     crashing(scene);
     return scene;
 }
 
-function shootBullet() {
-    var gun = scene.getObjectByName("gun1", true);
-    var bullet = this.bullet(gun);
-    bullet.owner = gun;
-    var vectorToTarget = new THREE.Vector3().subVectors(camera.position, gun.position).normalize();
-    var angle = Math.acos(vectorToTarget.dot(new THREE.Vector3(0,0,1).normalize()));
-    var axis = new THREE.Vector3().crossVectors(vectorToTarget, new THREE.Vector3(0, 0, 1)).normalize().negate();
-    var translate = new THREE.Matrix4().makeTranslation(gun.position.x, gun.position.y + 1, gun.position.z);
-    var rotate = new THREE.Matrix4().makeRotationAxis(axis, angle);
-    var matrix = new THREE.Matrix4().multiplyMatrices(translate, rotate);
-    bullet.heading = new THREE.Vector3(0, 0, 1).applyMatrix4(matrix).normalize();
-    bullet.matrix = matrix;
-    world.objects.push(bullet);
-    scene.add(bullet);
+function playSound(sound, distanceFromPlayer) {
+    sound.volume = Math.min(Math.max(0, (10 / distanceFromPlayer)), 1);
+    sound.play();
 }
 
-function bullet(shooter) {
-    var bulletGeom = new THREE.CylinderGeometry(0.1, 0.1, 0.3, 32, 16);
+function getRotationToPlayer(gun, position) {
+    var vectorToTarget = new THREE.Vector3().subVectors(camera.position, gun.position).normalize();
+    var angle = Math.acos(vectorToTarget.dot(new THREE.Vector3(0, 0, 1).normalize()));
+    var axis = new THREE.Vector3().crossVectors(vectorToTarget, new THREE.Vector3(0, 0, 1)).normalize().negate();
+    var t = position || { x: 0, y: 1, z: 0 };
+    var translate = new THREE.Matrix4().makeTranslation(t.x, t.y, t.z);
+    var rotate = new THREE.Matrix4().makeRotationAxis(axis, angle);
+    var matrix = new THREE.Matrix4().multiplyMatrices(translate, rotate);
+    return matrix;
+}
+
+function shootBullet() {
+    var gun = scene.getObjectByName("gun1", true);
+    var bullet = this.createBullet(gun);
+    world.objects.push(bullet);
+    scene.add(bullet);
+    gun.shoot();
+}
+
+function createBullet(shooter) {
+    var bulletGeom = new THREE.CylinderGeometry(0.0, 0.1, 0.3, 32, 16);
     var bulletMaterial = new THREE.MeshPhongMaterial({
         color: 0xF7A30B, specular: 0x111111, shininess: 90
     });
@@ -57,12 +54,14 @@ function bullet(shooter) {
     theBullet.add(bullet);
     theBullet.matrixAutoUpdate = false;
     theBullet.update = function() {
-        if (new THREE.Vector3().distanceTo(bullet.position) > 20) {
+        if (new THREE.Vector3().distanceTo(bullet.position) > 80) {
             world.objects.splice(world.objects.indexOf(theBullet), 1);
             scene.remove(theBullet);
         }
-        bullet.position.z += 0.1;
+        bullet.position.z += 0.3;
     };
+    theBullet.owner = shooter;
+    theBullet.matrix = getRotationToPlayer(shooter, { x: shooter.position.x, y: shooter.position.y + 1, z: shooter.position.z });
     return theBullet;
 }
 
@@ -74,61 +73,59 @@ function cannonSound() {
     return sound;
 }
 
-function trackTarget(gun) {
-    var vectorToTarget = new THREE.Vector3().subVectors(camera.position, gun.position).normalize();
-    var angle = Math.acos(vectorToTarget.dot(new THREE.Vector3(0, 0, 1).normalize()));
-    var translate = new THREE.Matrix4().makeTranslation(0, 1, 0);
-    var axis = new THREE.Vector3().crossVectors(vectorToTarget,
-        new THREE.Vector3(0, 0, 1)).normalize().negate();
-    var rotate = new THREE.Matrix4().makeRotationAxis(axis, angle);
-    var matrix = new THREE.Matrix4().multiplyMatrices(translate, rotate);
-    var turret = gun.getObjectByName("turret");
-    turret.matrix = matrix;
-    turret.updateMatrixWorld(true);
-}
+function createGun(position, name) {
+    var barrelGeom = new THREE.CylinderGeometry(0.2, 0.2, 3, 32, 16);
+    var barrelMaterial = new Physijs.createMaterial(new THREE.MeshPhongMaterial({
+        color: 0x000000, specular: 0x866C6C, shininess: 30, opacity: 1
+    }), 1, 1);
+    var barrel = new Physijs.CylinderMesh(barrelGeom, barrelMaterial, 1000);
+    barrel.position.z = 1.5;
+    barrel.rotation.x = 1.57;
 
-function gun(position, name) {
-    var turretGeom = new THREE.CylinderGeometry(0.2, 0.2, 3, 32, 16);
+    var innerBarrelGeom = new THREE.CylinderGeometry(0.1, 0.1, 3, 32, 16);
+    var innerBarrelMaterial = new Physijs.createMaterial(
+        new THREE.MeshBasicMaterial({color: 0x0 }), 1, 1);
+    var innerBarrel = new Physijs.CylinderMesh(innerBarrelGeom, innerBarrelMaterial, 1000);
+    innerBarrel.position.z = 1.51;
+    innerBarrel.rotation.x = 1.57;
+    innerBarrel.name = "innerBarrel";
+
+    var turretGeom = new THREE.SphereGeometry(1, 32, 16);
     var turretMaterial = new Physijs.createMaterial(new THREE.MeshPhongMaterial({
         color: 0x000000, specular: 0x866C6C,
-        shininess: 30, opacity: 1, wireframe: true
+        shininess: 30, opacity: 1
     }), 1, 1);
-    var turret = new Physijs.CylinderMesh(turretGeom, turretMaterial, 1000);
-    turret.position.z = 1.5;
-    turret.rotation.x = 1.57;
+    var turret = new Physijs.SphereMesh(turretGeom, turretMaterial, 1000);
+    turret.name = "barrel";
+    turret.matrixAutoUpdate = false;
+    turret.add(barrel);
+    turret.add(innerBarrel);
 
-    var barrelGeom = new THREE.CylinderGeometry(0.1, 0.1, 3, 32, 16);
-    var barrelMaterial = new Physijs.createMaterial(
-        new THREE.MeshBasicMaterial({color: 0x0, wireframe: true  }), 1, 1);
-    var barrel = new Physijs.CylinderMesh(barrelGeom, barrelMaterial, 1000);
-    barrel.position.z = 1.51;
-    barrel.rotation.x = 1.57;
-    barrel.name = "barrel";
-
-    var ballGeom = new THREE.SphereGeometry(1, 32, 16);
-    var ballMaterial = new Physijs.createMaterial(new THREE.MeshPhongMaterial({
-        color: 0x000000, specular: 0x866C6C,
-        shininess: 30, opacity: 1, wireframe: true
-    }), 1, 1);
-    var ball = new Physijs.SphereMesh(ballGeom, ballMaterial, 1000);
-    ball.name = "turret";
-    ball.matrixAutoUpdate = false;
-    ball.add(turret);
-    ball.add(barrel);
-
-    var baseGeom = new THREE.CylinderGeometry(0, 1, 2, 32, 16);
-    var baseMaterial = new THREE.MeshPhongMaterial({
+    var gunGeom = new THREE.CylinderGeometry(0, 1, 2, 32, 16);
+    var gunMaterial = new THREE.MeshPhongMaterial({
         color: 0x3344E8, specular: 0x111111,
-        shininess: 30, opacity: 1, wireframe: true
+        shininess: 30, opacity: 1
     });
-    baseMesh = new THREE.Mesh(baseGeom, baseMaterial);
-    baseMesh.add(ball);
-    baseMesh.name = name;
-    baseMesh.position.copy(position);
-    baseMesh.update = function() {
-        trackTarget(this);
+    var gun = new THREE.Mesh(gunGeom, gunMaterial);
+    gun.add(turret);
+    gun.name = name;
+    gun.position.copy(position);
+    gun.firingSound = cannonSound();
+    gun.update = function() {
+        var matrix = getRotationToPlayer(this);
+        var turret = this.getObjectByName("barrel");
+        turret.matrix = matrix;
+        turret.updateMatrixWorld(true);
     };
-    return baseMesh;
+    gun.lastFired = Date.now();
+    gun.shoot = function() {
+        var now = Date.now();
+        if (now - this.lastFired > 3000) {
+            playSound(this.firingSound, this.position.distanceTo(camera.position));
+            this.lastFired = now;
+        }
+    };
+    return gun;
 }
 
 function createScene() {
@@ -204,7 +201,7 @@ function crashing(scene) {
 function addGroundTo(scene) {
     var groundGeometry = new THREE.CubeGeometry(1000, 1, 1000, 100, 1, 100);
     var groundMaterial = new Physijs.createMaterial(
-        new THREE.MeshLambertMaterial({ map: THREE.ImageUtils.loadTexture( 'images/rocks.jpg' ), wireframe: true }),
+        new THREE.MeshLambertMaterial({ map: THREE.ImageUtils.loadTexture( 'images/rocks.jpg' ) }),
         .8, // high friction
         .3 // low restitution
     );
