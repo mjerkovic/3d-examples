@@ -6,6 +6,7 @@
 		    var camera, scene, renderer, controls;
 		    var mesh, handle;
 		    var angle = 0;
+		    var step = 0;
 
 		   	function setup() {
 			    //init();
@@ -27,7 +28,11 @@
 
 		   	function anim() {
 		   		controls.update(0.2);
-		   		t.position.z += 0.1;
+		   		updateTarget();
+		   		//t.position.z += 0.1;
+		   		//step += 0.1;
+		   		//final.translateOnAxis(final.axis, step);
+		   		final.updateMatrixWorld(true);
 		   		renderer.render(scene, camera);
 		   		requestAnimationFrame(anim);
 		   	}
@@ -74,7 +79,7 @@
 		        ball.position.set(10, 10, -10);
 		        scene.add(ball);
 
-			    var vectorToTarget = new THREE.Vector3().subVectors(ball.position, new THREE.Vector3(0,0,0)).normalize();
+			    var vectorToTarget = new THREE.Vector3().subVectors(camera.position, new THREE.Vector3(0,0,0)).normalize();
 			    var angle = Math.acos(vectorToTarget.dot(new THREE.Vector3(0, 0, 1).normalize()));
 			    var translate = new THREE.Matrix4().makeTranslation(0, 1, 0);
 			    var axis = new THREE.Vector3().crossVectors(vectorToTarget,
@@ -92,12 +97,12 @@
 		        var line5 = new THREE.Line(targetLine, targetMaterial);
 		        scene.add(line5);
 		        
-		        var targetGeom = new THREE.CylinderGeometry(1, 1, 20, 16, 16);
+		        var targetGeom = new THREE.CylinderGeometry(1, 1, 20, 64, 64);
 		        var targetM = new THREE.MeshBasicMaterial({ color: 0x00FF00 });
 		        t = new THREE.Mesh(targetGeom, targetM);
 		        t.rotation.x = 1.57;
 		        t.position.z = 10;
-		        var final = new THREE.Object3D();
+		        final = new THREE.Object3D();
 		        final.add(t);
 		        final.matrixAutoUpdate = false;
 		        //console.log(heading);
@@ -105,6 +110,7 @@
 		        //var nt = heading.multiplyScalar(10);
 		        //var trans = new THREE.Matrix4().makeTranslation(nt.x * 2, nt.y * 2, nt.z * 2);
 		        final.matrix = rotate;
+		        final.axis = axis;
 		        scene.add(final);
 
 
@@ -112,6 +118,19 @@
 		        renderer.setSize( window.innerWidth, window.innerHeight );
 		        document.body.appendChild( renderer.domElement );
             }
+
+					function updateTarget() {
+								    var vectorToTarget = new THREE.Vector3().subVectors(camera.position, new THREE.Vector3(0,0,0)).normalize();
+			    var angle = Math.acos(vectorToTarget.dot(new THREE.Vector3(0, 0, 1).normalize()));
+			    var translate = new THREE.Matrix4().makeTranslation(0, 1, 0);
+			    var axis = new THREE.Vector3().crossVectors(vectorToTarget,
+			        new THREE.Vector3(0, 0, 1)).normalize().negate();
+			    var rotate = new THREE.Matrix4().makeRotationAxis(axis, angle);
+			    var heading = new THREE.Vector3(0, 0, 1).applyMatrix4(rotate).normalize();
+
+		        final.matrix = rotate;
+		        final.axis = axis;
+				}
 
 		    function init() {
 		        camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 10000 );
