@@ -53,12 +53,12 @@ function createBullet(shooter) {
     var theBullet = new THREE.Object3D();
     theBullet.add(bullet);
     theBullet.matrixAutoUpdate = false;
-    theBullet.update = function() {
+    theBullet.update = function(delta) {
         if (new THREE.Vector3().distanceTo(bullet.position) > 80) {
             world.objects.splice(world.objects.indexOf(theBullet), 1);
             scene.remove(theBullet);
         }
-        bullet.position.z += 0.3;
+        bullet.position.z += 50 * delta;
     };
     theBullet.owner = shooter;
     theBullet.matrix = getRotationToPlayer(shooter, { x: shooter.position.x, y: shooter.position.y + 1, z: shooter.position.z });
@@ -111,7 +111,7 @@ function createGun(position, name) {
     gun.name = name;
     gun.position.copy(position);
     gun.firingSound = cannonSound();
-    gun.update = function() {
+    gun.update = function(delta) {
         var matrix = getRotationToPlayer(this);
         var turret = this.getObjectByName("barrel");
         turret.matrix = matrix;
