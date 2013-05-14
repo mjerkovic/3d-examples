@@ -1,30 +1,100 @@
 <html>
 	<head>
 		<script src="lib/three.min.js"></script>
+		<script src="lib/controls.js"></script>
 		<script>
-		    var camera, scene, renderer;
+		    var camera, scene, renderer, controls;
 		    var mesh, handle;
 		    var angle = 0;
 
 		   	function setup() {
-			    init();
-			    animate();
+			    //init();
+			    //animate();
+			    initGraph();
+			    anim();
 		   	}
 
 		   	function animate() {
-		   		//mesh.updateMatrix();
-		   		//mesh.rotation.y += 0.05;
 		   		angle += 0.01;
 				var m = new THREE.Matrix4().makeTranslation(0, 1, -20);
 				var n = new THREE.Matrix4().makeRotationAxis(new THREE.Vector3(0.7071, 0.7071, 0), angle);
 				m.multiply(n);
 				mesh.matrix = m;	
-				mesh.updateMatrixWorld(true);
-
-		   		//mesh.rotation.z += 0.05;
+				mesh.updateMatrixWorld(true);			    			   		
 		   		renderer.render(scene, camera);
 		   		requestAnimationFrame(animate);
 		   	}
+
+		   	function anim() {
+		   		controls.update(0.2);
+		   		renderer.render(scene, camera);
+		   		requestAnimationFrame(anim);
+		   	}
+
+		    function initGraph() {
+		        camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 10000 );
+		        camera.position.set(20, 20, -10);
+    			camera.lookAt(new THREE.Vector3(0, 0, 0));
+
+    			controls = new FirstPersonControls(camera);
+    			controls.target = new THREE.Vector3(0, 0, 0);
+    			controls.movementSpeed = 0.5;
+    			controls.noFly = false;
+    			controls.lookVertical = true;
+
+		        scene = new THREE.Scene();
+
+				var light = new THREE.DirectionalLight( 0xffffff, 1.0 );
+				light.position.set( 200, 400, 500 );
+				scene.add(light);
+
+
+		        var ud = new THREE.Geometry();
+		        ud.vertices.push(new THREE.Vector3(0, 50, 0));
+		        ud.vertices.push(new THREE.Vector3(0, -50, 0));
+		        ud.vertices.push(new THREE.Vector3(-50, 0, 0));
+		        ud.vertices.push(new THREE.Vector3(50, 0, 0));
+		        ud.vertices.push(new THREE.Vector3(0, 0, -100));
+		        ud.vertices.push(new THREE.Vector3(0, 0, 50));		        
+		        var m = new THREE.LineBasicMaterial({ color: 0x0000FF });
+		        var line1 = new THREE.Line(ud, m, THREE.LinePieces);
+		        scene.add(line1);
+
+		        var baseLine = new THREE.Geometry();
+		        baseLine.vertices.push(new THREE.Vector3(0, 0, 0));
+		        baseLine.vertices.push(new THREE.Vector3(0, 0, 25));
+		        var baseMaterial = new THREE.LineBasicMaterial({ color: 0x000000, linewidth: 3 });
+		        var line4 = new THREE.Line(baseLine, baseMaterial);
+		        scene.add(line4);
+
+		        var ballGeom = new THREE.SphereGeometry(2, 32, 16);
+		        var ballMaterial = new THREE.MeshBasicMaterial({ color: 0xFF0000 });
+		        var ball = new THREE.Mesh(ballGeom, ballMaterial);
+		        ball.position.set(10, 10, -10);
+		        scene.add(ball);
+
+			    var vectorToTarget = new THREE.Vector3().subVectors(ball.position, new THREE.Vector3(0,0,0)).normalize();
+			    var angle = Math.acos(vectorToTarget.dot(new THREE.Vector3(0, 0, 1).normalize()));
+			    var translate = new THREE.Matrix4().makeTranslation(0, 1, 0);
+			    var axis = new THREE.Vector3().crossVectors(vectorToTarget,
+			        new THREE.Vector3(0, 0, 1)).normalize().negate();
+			    var rotate = new THREE.Matrix4().makeRotationAxis(axis, angle);
+			    //var matrix = new THREE.Matrix4().multiplyMatrices(translate, rotate);
+			    var heading = new THREE.Vector3(0, 0, 1).applyMatrix4(rotate).normalize();
+
+		        var targetLine = new THREE.Geometry();
+		        targetLine.vertices.push(new THREE.Vector3(0, 0, 0));
+		        var destination = new THREE.Vector3(0, 0, 0).add(heading.multiplyScalar(100));
+		        targetLine.vertices.push(destination);
+		        var targetMaterial = new THREE.LineBasicMaterial({ color: 0x00FF00, linewidth: 3 });
+		        var line5 = new THREE.Line(targetLine, targetMaterial);
+		        scene.add(line5);
+
+
+		        renderer = new THREE.CanvasRenderer();
+		        renderer.setSize( window.innerWidth, window.innerHeight );
+		        document.body.appendChild( renderer.domElement );
+            }
 
 		    function init() {
 		        camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 10000 );
