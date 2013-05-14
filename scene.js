@@ -33,41 +33,16 @@ function initScene(camera) {
 function shootBullet() {
     var gun = scene.getObjectByName("gun1", true);
     var bullet = this.bullet(gun);
-    bullet.rotation.x = 1.57;
-    bullet.matrixAutoUpdate = false;
     bullet.owner = gun;
-    var pos = new THREE.Vector3().copy(gun.position);
-    pos.y += 1;
-    bullet.position.copy(pos);
+    var vectorToTarget = new THREE.Vector3().subVectors(camera.position, gun.position).normalize();
+    var angle = Math.acos(vectorToTarget.dot(new THREE.Vector3(0,0,1).normalize()));
+    var axis = new THREE.Vector3().crossVectors(vectorToTarget, new THREE.Vector3(0, 0, 1)).normalize().negate();
+    var translate = new THREE.Matrix4().makeTranslation(gun.position.x, gun.position.y + 1, gun.position.z);
+    var rotate = new THREE.Matrix4().makeRotationAxis(axis, angle);
+    var matrix = new THREE.Matrix4().multiplyMatrices(translate, rotate);
+    bullet.heading = new THREE.Vector3(0, 0, 1).applyMatrix4(matrix).normalize();
+    bullet.matrix = matrix;
     world.objects.push(bullet);
-    bullet.update = function() {
-        if (this.heading) {
-            var newPos = new THREE.Vector3().getPositionFromMatrix(this.matrix);
-            var delta = new THREE.Vector3().copy(this.heading).multiplyScalar(0.1);
-            newPos.add(delta);
-            this.matrix.setPosition(newPos);
-        } else {
-            var vectorToTarget = new THREE.Vector3().subVectors(camera.position, bullet.owner.position).normalize();
-            var angle = Math.acos(vectorToTarget.dot(new THREE.Vector3(0,0,1).normalize()));
-            var axis = new THREE.Vector3().crossVectors(vectorToTarget, new THREE.Vector3(0, 0, 1)).normalize().negate();
-            var translate = new THREE.Matrix4().makeTranslation(this.owner.position.x, this.owner.position.y + 1, this.owner.position.z);
-            var orientate = new THREE.Matrix4().makeRotationX(1.57);
-            var rotate = new THREE.Matrix4().makeRotationAxis(axis, angle).multiply(orientate);
-            var matrix = new THREE.Matrix4().multiplyMatrices(translate, rotate);
-            this.heading = new THREE.Vector3(0, 0, 1).applyMatrix4(matrix).normalize();
-            this.matrix = matrix;
-
-            var start = new THREE.Vector3(this.owner.position.x, this.owner.position.y + 1, this.owner.position.z);
-            var end = new THREE.Vector3().copy(start).add(new THREE.Vector3().copy(this.heading).multiplyScalar(10));
-            var g = new THREE.Geometry();
-            g.vertices.push(start);
-            g.vertices.push(end);
-            var m = new THREE.MeshBasicMaterial({ color: 0xFF0000 });
-            var line = new THREE.Line(g, m);
-            scene.add(line);
-        }
-        this.updateMatrixWorld(true);
-    };
     scene.add(bullet);
 }
 
@@ -77,7 +52,18 @@ function bullet(shooter) {
         color: 0xF7A30B, specular: 0x111111, shininess: 90
     });
     var bullet = new THREE.Mesh(bulletGeom, bulletMaterial);
-    return bullet;
+    bullet.rotation.x = 1.57;
+    var theBullet = new THREE.Object3D();
+    theBullet.add(bullet);
+    theBullet.matrixAutoUpdate = false;
+    theBullet.update = function() {
+        if (new THREE.Vector3().distanceTo(bullet.position) > 20) {
+            world.objects.splice(world.objects.indexOf(theBullet), 1);
+            scene.remove(theBullet);
+        }
+        bullet.position.z += 0.1;
+    };
+    return theBullet;
 }
 
 function cannonSound() {
