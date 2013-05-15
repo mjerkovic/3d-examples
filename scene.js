@@ -170,6 +170,10 @@ function crashing(scene) {
             crash1.velocity = 0;
         }
     });
+    crash1.update = function(delta) {
+        crash1.translateX(crash1.velocity);
+        crash1.__dirtyPosition = crash1.velocity > 0;
+    };
     var crash2 = new Physijs.SphereMesh(bouncingBallGeometry, bouncingMaterial, 1);
     crash2.position.set(100, 0, -3);
     crash2.velocity = 0.3;
@@ -179,23 +183,24 @@ function crashing(scene) {
             crash2.velocity = 0;
         }
     });
+    crash2.update = function(delta) {
+        crash2.position.x -= crash2.velocity;
+        crash2.__dirtyPosition = crash2.velocity > 0;
+    };
     var crash3 = new Physijs.SphereMesh(bouncingBallGeometry, bouncingMaterial, 1);
     crash3.position.set(30, 0, -3);
     crash3.velocity = 0.3;
     crash3.addEventListener("collision", function(other, linear, angular) {
         console.log("Hit the wall");
     });
-    scene.doIt = function() {
-        crash1.translateX(crash1.velocity);
-        crash1.__dirtyPosition = crash1.velocity > 0;
-        crash2.position.x -= crash2.velocity;
-        crash2.__dirtyPosition = crash2.velocity > 0;
+    crash3.update = function(delta) {
         crash3.position.x -= crash3.velocity;
         crash3.__dirtyPosition = crash3.velocity > 0;
     };
     scene.add(crash1);
     scene.add(crash2);
     scene.add(crash3);
+    world.objects.push(crash1, crash2, crash3);
 }
 
 function addGroundTo(scene) {

@@ -43,14 +43,9 @@
                 var delta = clock.getDelta();
                 controls.update(0.2);
                 scene.simulate();
-
-                //yRotationOnly();
-                //rotatingAroundAxis(ball);
-                //rotatingAroundAxis(ball2);
                 world.objects.forEach(function (obj) {
                     obj.update(delta);
                 });
-
                 scene.doIt();
                 renderer.render( scene, camera );
 		        requestAnimationFrame( animate );
