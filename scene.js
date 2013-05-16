@@ -29,15 +29,6 @@ function getRotationToPlayer(gun, position) {
     return matrix;
 }
 
-function shootBullet() {
-/*  var gun = scene.getObjectByName("gun1", true);
-    var bullet = this.createBullet(gun);
-    world.objects.push(bullet);
-    scene.add(bullet);
-*/
-    gun1.shoot();
-}
-
 function createBullet(shooter) {
     var bulletGeom = new THREE.CylinderGeometry(0.0, 0.1, 0.3, 32, 16);
     var bulletMaterial = new THREE.MeshPhongMaterial({
