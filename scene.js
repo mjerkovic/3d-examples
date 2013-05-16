@@ -3,19 +3,13 @@ function initScene(camera) {
     addLightsTo(scene);
     addGroundTo(scene);
     //walls(scene);
-    var compass = this.compass();
-    camera.lookAt(compass.position);
-    scene.add(compass);
+    scene.add(this.compass());
     scene.add(building());
     scene.add(bouncingBall());
-    var gun1 = createGun(new THREE.Vector3(15, 0, 1.5), "gun1");
-    world.objects.push(gun1);
-    scene.add(gun1);
-    var gun2 = createGun(new THREE.Vector3(10, 9, -51), "gun2");
-    gun2.firingSound = cannonSound();
-    world.objects.push(gun2);
-    scene.add(gun2);
     crashing(scene);
+    gun1 = createGun(scene, new THREE.Vector3(15, 0, 1.5), "gun1");
+    var gun2 = createGun(scene, new THREE.Vector3(10, 9, -51), "gun2");
+    world.objects.push(gun1, gun2);
     return scene;
 }
 
@@ -36,11 +30,12 @@ function getRotationToPlayer(gun, position) {
 }
 
 function shootBullet() {
-    var gun = scene.getObjectByName("gun1", true);
+/*  var gun = scene.getObjectByName("gun1", true);
     var bullet = this.createBullet(gun);
     world.objects.push(bullet);
     scene.add(bullet);
-    gun.shoot();
+*/
+    gun1.shoot();
 }
 
 function createBullet(shooter) {
@@ -53,16 +48,20 @@ function createBullet(shooter) {
     var theBullet = new THREE.Object3D();
     theBullet.add(bullet);
     theBullet.matrixAutoUpdate = false;
-    theBullet.update = function(delta) {
-        if (new THREE.Vector3().distanceTo(bullet.position) > 80) {
-            world.objects.splice(world.objects.indexOf(theBullet), 1);
-            scene.remove(theBullet);
-        }
-        bullet.position.z += 50 * delta;
-    };
     theBullet.owner = shooter;
     theBullet.matrix = getRotationToPlayer(shooter, { x: shooter.position.x, y: shooter.position.y + 1, z: shooter.position.z });
-    return theBullet;
+    scene.add(theBullet);
+    return (function() {
+        return {
+            update : function(delta) {
+                if (new THREE.Vector3().distanceTo(bullet.position) > 80) {
+                    world.objects.splice(world.objects.indexOf(theBullet), 1);
+                    scene.remove(theBullet);
+                }
+                bullet.position.z += 50 * delta;
+            }
+        }
+    })();
 }
 
 function cannonSound() {
@@ -73,7 +72,7 @@ function cannonSound() {
     return sound;
 }
 
-function createGun(position, name) {
+function createGun(scene, position, name) {
     var barrelGeom = new THREE.CylinderGeometry(0.2, 0.2, 3, 32, 16);
     var barrelMaterial = new Physijs.createMaterial(new THREE.MeshPhongMaterial({
         color: 0x000000, specular: 0x866C6C, shininess: 30, opacity: 1
@@ -111,21 +110,30 @@ function createGun(position, name) {
     gun.name = name;
     gun.position.copy(position);
     gun.firingSound = cannonSound();
-    gun.update = function(delta) {
-        var matrix = getRotationToPlayer(this);
-        var turret = this.getObjectByName("barrel");
-        turret.matrix = matrix;
-        turret.updateMatrixWorld(true);
-    };
     gun.lastFired = Date.now();
-    gun.shoot = function() {
-        var now = Date.now();
-        if (now - this.lastFired > 3000) {
-            playSound(this.firingSound, this.position.distanceTo(camera.position));
-            this.lastFired = now;
+    scene.add(gun);
+    return (new function() {
+        return {
+            shoot: function() {
+                var now = Date.now();
+                if (now - gun.lastFired > 3000) {
+                    world.objects.push(createBullet(gun));
+                    playSound(gun.firingSound, gun.position.distanceTo(camera.position));
+                    this.lastFired = now;
+                }
+            },
+
+            update: function(delta) {
+                var matrix = getRotationToPlayer(gun);
+                turret.matrix = matrix;
+                turret.updateMatrixWorld(true);
+            },
+
+            position: function() {
+                return gun.position;
+            }
         }
-    };
-    return gun;
+    }());
 }
 
 function createScene() {

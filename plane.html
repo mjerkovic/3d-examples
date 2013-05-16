@@ -26,7 +26,7 @@
     			camera.lookAt(new THREE.Vector3(0, 4, 0));
 
     			controls = new FirstPersonControls(camera);
-    			controls.target = new THREE.Vector3(0, 4, 0);
+    			controls.target = new THREE.Vector3(0, 0, 0);
     			controls.movementSpeed = 2;
     			controls.noFly = false;
     			controls.lookVertical = true;
@@ -46,7 +46,6 @@
                 world.objects.forEach(function (obj) {
                     obj.update(delta);
                 });
-                //scene.doIt();
                 renderer.render( scene, camera );
 		        requestAnimationFrame( animate );
 		    }
