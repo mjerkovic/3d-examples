@@ -119,11 +119,14 @@ function createGun(scene, position, name) {
                 if (now - gun.lastFired > 3000) {
                     world.objects.push(createBullet(gun));
                     playSound(gun.firingSound, gun.position.distanceTo(camera.position));
-                    this.lastFired = now;
+                    gun.lastFired = now;
                 }
             },
 
             update: function(delta) {
+                if (gun.position.distanceTo(camera.position) <= 50) {
+                    this.shoot();
+                }
                 var matrix = getRotationToPlayer(gun);
                 turret.matrix = matrix;
                 turret.updateMatrixWorld(true);
