@@ -13,25 +13,24 @@ function initScene(camera) {
     var gun1 = gunFactory.createGun({ scene: scene, position: new THREE.Vector3(15, 1, 1.5), name: "gun1", bulletFactory: bulletFactory });
     var gun2 = gunFactory.createGun({ scene: scene, position: new THREE.Vector3(10, 11, -51), name: "gun2", bulletFactory: bulletFactory });
     world.objects.push(gun1, gun2);
-    world.objects.push(createVehicle({ scene: scene, x: 20, z: 2 }));
-    world.objects.push(createVehicle({ scene: scene, x: 40, z: 2 }));
+    world.objects.push(createJeep({ scene: scene, x: 20, z: 2 }));
+    world.objects.push(createJeep({ scene: scene, x: 40, z: 2 }));
     return scene;
 }
 
-function createVehicle(spec) {
-    var v = geometries.createVehicleGeometry();
-    v.position.x = spec.x;
-    v.position.z = spec.z;
-    //v.position.y = 0.6;
-    spec.scene.add(v);
-    var Vehicle = function() {
+function createJeep(spec) {
+    var jeep = geometries.createJeepGeometry();
+    jeep.position.x = spec.x;
+    jeep.position.z = spec.z;
+    //jeep.position.y = 0.6;
+    spec.scene.add(jeep);
+    var Jeep = function() {
         this.update = function(delta) {
-
+            jeep.position.z += 0.1;
         }
     };
-    Vehicle.prototype = new GameEntity();
-    var result = new Vehicle();
-    return result;
+    Jeep.prototype = new GameEntity();
+    return new Jeep();
 }
 
 function playSound(sound, distanceFromPlayer) {
