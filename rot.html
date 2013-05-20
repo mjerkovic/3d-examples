@@ -4,7 +4,7 @@
 		<script src="lib/controls.js"></script>
 		<script>
 		    var camera, scene, renderer;
-		    var angle = 0.78539;
+		    var angle = 0;
             var baseMaterial = new THREE.LineBasicMaterial({ color: 0x000000, linewidth: 3 });
 
 		   	function setup() {
@@ -18,7 +18,7 @@
 		        baseLine.vertices.push(new THREE.Vector3(0, 0, 0));
 		        var xVal = Math.cos(angle) * 50;
 		        var zVal = Math.sin(angle) * 50
-		        baseLine.vertices.push(new THREE.Vector3(xVal, 0, zVal));
+                baseLine.vertices.push(new THREE.Vector3(xVal, 0, zVal));
 		        line4 = new THREE.Line(baseLine, baseMaterial);
 		        scene.add(line4);
 
@@ -66,9 +66,11 @@
 		        scene.add(line4);
 		        
 		        renderer = new THREE.CanvasRenderer();
-		        renderer.setSize( window.innerWidth, window.innerHeight );
-		        document.body.appendChild( renderer.domElement );
-		        document.addEventListener('keyup', function(ev) {
+		        renderer.setSize( window.innerWidth/2, window.innerHeight/2 );
+                var leftDiv = document.getElementById("left");
+                rightDiv = document.getElementById("right");
+		        leftDiv.appendChild( renderer.domElement );
+		        document.addEventListener('keydown', function(ev) {
 					switch( ev.keyCode ) {
 						case 37: angle -= 0.1; console.log(angle); break;
 						case 39: angle += 0.1; console.log(angle); break;
@@ -79,5 +81,7 @@
 		</script>
 	</head>
 	<body onload="setup()">
+        <div id="left" style="float: left"></div>
+        <div id="right" style="float: right"></div>
 	</body>		
 </html>

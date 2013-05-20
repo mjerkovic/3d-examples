@@ -1,5 +1,7 @@
 function initScene(camera) {
     var scene = createScene();
+    geometries = new Geometries();
+    addPlayer(scene, camera);
     addLightsTo(scene);
     addGroundTo(scene);
     addSpinnerTo(scene);
@@ -8,7 +10,6 @@ function initScene(camera) {
     scene.add(building());
     scene.add(bouncingBall());
     crashing(scene);
-    geometries = new Geometries();
     var gunFactory = new GunFactory();
     var bulletFactory = new BulletFactory();
     var gun1 = gunFactory.createGun({ scene: scene, position: new THREE.Vector3(15, 1, 1.5), name: "gun1", bulletFactory: bulletFactory });
@@ -43,6 +44,66 @@ function addSpinnerTo(scene) {
     world.objects.push(new Spinner());
 }
 
+function addPlayer(scene, f) {
+    var Player = function() {
+        var playerBody = geometries.createJeepGeometry();
+        var playerObject = new THREE.Object3D();
+        playerObject.add(playerBody);
+        playerObject.position.x = 0;
+        playerObject.position.z = 50;
+        scene.add(playerObject);
+        var forward = false;
+        var left = false;
+        var right = false;
+        var movementSpeed = 50;
+
+        this.moveForward = function() {
+            forward = !forward;
+        }
+
+        this.turnLeft = function() {
+            left = !left;
+        }
+
+        this.turnRight = function() {
+            right = !right;
+        }
+
+        this.position = function() {
+            return playerObject.position;
+        }
+
+        this.update = function(delta) {
+            var rotationMatrix = new THREE.Matrix4();
+            var rotateAngle = Math.PI / 2 * delta;   // pi/2 radians (90 degrees) per second
+
+            if (forward) {
+                playerObject.translateZ(-movementSpeed * delta);
+            }
+            if (left) {
+                rotationMatrix = new THREE.Matrix4().makeRotationY(rotateAngle);
+            }
+            if (right) {
+                rotationMatrix = new THREE.Matrix4().makeRotationY(-rotateAngle);
+            }
+            if (left || right) {
+                playerObject.matrix.multiply(rotationMatrix);
+                playerObject.rotation.setEulerFromRotationMatrix(playerObject.matrix);
+            }
+            var relativeCameraOffset = new THREE.Vector3(0,5,25);
+
+            var cameraOffset = relativeCameraOffset.applyMatrix4(playerObject.matrixWorld);
+            camera.position.x = cameraOffset.x;
+            camera.position.y = cameraOffset.y;
+            camera.position.z = cameraOffset.z;
+            camera.lookAt(playerObject.position);
+        }
+    }
+    Player.prototype = new GameEntity();
+    player = new Player();
+    world.objects.push(player);
+}
+
 function createJeep(spec) {
 
     var Jeep = function() {
@@ -73,7 +134,7 @@ function playSound(sound, distanceFromPlayer) {
 function GameEntity() {
     return {
         getRotationToPlayer: function(source, target, elevation) {
-            var tgt = new THREE.Vector3().copy(target.position);
+            var tgt = new THREE.Vector3().copy(target.position());
             tgt.y -= 1;
             var vectorToTarget = new THREE.Vector3().subVectors(tgt, source.position()).normalize();
             var angle = Math.acos(vectorToTarget.dot(new THREE.Vector3(0, 0, 1).normalize()));
@@ -153,7 +214,7 @@ function GunFactory() {
                 if (gun.position.distanceTo(camera.position) <= 50) {
                     this.shoot();
                 }
-                var matrix = this.getRotationToPlayer(this, camera);
+                var matrix = this.getRotationToPlayer(this, player);
                 turret.matrix = matrix;
                 turret.updateMatrixWorld(true);
             };

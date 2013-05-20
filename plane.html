@@ -4,7 +4,10 @@
 		<script src="lib/controls.js"></script>
 		<script src="lib/physi.js"></script>
 		<script src="lib/physijs_worker.js"></script>
+<!--
         <script src="scene.js"></script>
+-->
+        <script src="tanks.js"></script>
         <script src="geometries.js"></script>
 		<script>
 		    var camera, scene, renderer, controls, clock;
@@ -22,7 +25,7 @@
 		    	Physijs.scripts.worker = 'lib/physijs_worker.js';
 				Physijs.scripts.ammo = 'ammo.js';
 
-		        camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 500 );
+		        camera = new THREE.PerspectiveCamera(30, window.innerWidth / window.innerHeight, 1, 500 );
 		        camera.position.set(10, 2, 30);
     			camera.lookAt(new THREE.Vector3(0, 4, 0));
 
@@ -38,6 +41,20 @@
                 renderer.setSize( window.innerWidth, window.innerHeight );
                 renderer.setClearColor(0xDEDEDE);
                 document.body.appendChild( renderer.domElement );
+                document.addEventListener("keydown", function(event) {
+                    switch(event.keyCode) {
+                        case 87: player.moveForward(); break;
+                        case 65: player.turnLeft(); break;
+                        case 68: player.turnRight(); break;
+                    }
+                });
+                document.addEventListener("keyup", function(event) {
+                    switch(event.keyCode) {
+                        case 87: player.moveForward(); break;
+                        case 65: player.turnLeft(); break;
+                        case 68: player.turnRight(); break;
+                    }
+                });
             }
 
             function animate() {
