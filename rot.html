@@ -1,0 +1,83 @@
+<html>
+	<head>
+		<script src="lib/three.min.js"></script>
+		<script src="lib/controls.js"></script>
+		<script>
+		    var camera, scene, renderer;
+		    var angle = 0.78539;
+            var baseMaterial = new THREE.LineBasicMaterial({ color: 0x000000, linewidth: 3 });
+
+		   	function setup() {
+			    initGraph();
+			    anim();
+		   	}
+
+		   	function anim() {
+		   		scene.remove(line4);
+		   		var baseLine = new THREE.Geometry();
+		        baseLine.vertices.push(new THREE.Vector3(0, 0, 0));
+		        var xVal = Math.cos(angle) * 50;
+		        var zVal = Math.sin(angle) * 50
+		        baseLine.vertices.push(new THREE.Vector3(xVal, 0, zVal));
+		        line4 = new THREE.Line(baseLine, baseMaterial);
+		        scene.add(line4);
+
+		   		renderer.render(scene, camera);
+		   		requestAnimationFrame(anim);
+		   	}
+
+		    function initGraph() {
+		        camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 10000 );
+		        camera.position.set(20, 10, 10);
+    			camera.lookAt(new THREE.Vector3(0, 0, 0));
+
+		        scene = new THREE.Scene();
+
+				var light = new THREE.DirectionalLight( 0xffffff, 1.0 );
+				light.position.set( 200, 400, 500 );
+				scene.add(light);
+
+
+		        var ud = new THREE.Geometry();
+		        ud.vertices.push(new THREE.Vector3(0, 50, 0));
+		        ud.vertices.push(new THREE.Vector3(0, -50, 0));
+		        var m = new THREE.LineBasicMaterial({ color: 0x00FF00 });
+		        var line1 = new THREE.Line(ud, m, THREE.LinePieces);
+		        scene.add(line1);
+
+		        var lr = new THREE.Geometry();
+		        lr.vertices.push(new THREE.Vector3(-50, 0, 0));
+		        lr.vertices.push(new THREE.Vector3(50, 0, 0));
+		        var m2 = new THREE.LineBasicMaterial({ color: 0xFF0000 });
+		        var line2 = new THREE.Line(lr, m2, THREE.LinePieces);
+		        scene.add(line2);
+
+		        var bf = new THREE.Geometry();
+		        bf.vertices.push(new THREE.Vector3(0, 0, -100));
+		        bf.vertices.push(new THREE.Vector3(0, 0, 50));		        
+		        var m3 = new THREE.LineBasicMaterial({ color: 0x0000FF });
+		        var line3 = new THREE.Line(bf, m3, THREE.LinePieces);
+		        scene.add(line3);
+
+		        var baseLine = new THREE.Geometry();
+		        baseLine.vertices.push(new THREE.Vector3(0, 0, 0));
+		        baseLine.vertices.push(new THREE.Vector3(0, 0, 25));
+		        line4 = new THREE.Line(baseLine, baseMaterial);
+		        scene.add(line4);
+		        
+		        renderer = new THREE.CanvasRenderer();
+		        renderer.setSize( window.innerWidth, window.innerHeight );
+		        document.body.appendChild( renderer.domElement );
+		        document.addEventListener('keyup', function(ev) {
+					switch( ev.keyCode ) {
+						case 37: angle -= 0.1; console.log(angle); break;
+						case 39: angle += 0.1; console.log(angle); break;
+					}
+		        });
+            }
+
+		</script>
+	</head>
+	<body onload="setup()">
+	</body>		
+</html>
