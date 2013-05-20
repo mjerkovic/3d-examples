@@ -37,7 +37,6 @@ function addSpinnerTo(scene) {
             angle *= delta;
             angle = angle  % (Math.PI *2);
             spinner.rotation.y += angle;
-            console.log(spinner.rotation.y);
         }
     };
     Spinner.prototype = new GameEntity();

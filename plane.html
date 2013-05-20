@@ -43,16 +43,16 @@
                 document.body.appendChild( renderer.domElement );
                 document.addEventListener("keydown", function(event) {
                     switch(event.keyCode) {
-                        case 87: player.moveForward(); break;
-                        case 65: player.turnLeft(); break;
-                        case 68: player.turnRight(); break;
+                        case 87: player.moveForward(); console.log("keydown"); break;
+                        case 65: player.turnLeft(); console.log("keydown"); break;
+                        case 68: player.turnRight(); console.log("keydown"); break;
                     }
                 });
                 document.addEventListener("keyup", function(event) {
                     switch(event.keyCode) {
-                        case 87: player.moveForward(); break;
-                        case 65: player.turnLeft(); break;
-                        case 68: player.turnRight(); break;
+                        case 87: player.moveForward(); console.log("keyup"); break;
+                        case 65: player.turnLeft(); console.log("keyup");  break;
+                        case 68: player.turnRight(); console.log("keyup");  break;
                     }
                 });
             }
