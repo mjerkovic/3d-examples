@@ -27,18 +27,6 @@ function addPlayer(scene, camera) {
         var movementSpeed = 50;
         var maxRotation = THREE.Math.degToRad(90);
 
-        this.moveForward = function() {
-            forward = !forward;
-        }
-
-        this.turnLeft = function() {
-            left = !left;
-        }
-
-        this.turnRight = function() {
-            right = !right;
-        }
-
         this.position = function() {
             return playerObject.position;
         }
@@ -49,15 +37,19 @@ function addPlayer(scene, camera) {
             var forward = keyboard.keyPressed("W");
             var left = keyboard.keyPressed("A");
             var right = keyboard.keyPressed("D");
+            var backward = keyboard.keyPressed("S");
 
             if (forward) {
                 playerObject.translateZ(movementSpeed * delta);
             }
+            if (backward) {
+                playerObject.translateZ(-movementSpeed * delta);
+            }
             if (left) {
-                rotationMatrix = new THREE.Matrix4().makeRotationY(rotateAngle);
+                rotationMatrix = new THREE.Matrix4().makeRotationY(backward ? -rotateAngle : rotateAngle);
             }
             if (right) {
-                rotationMatrix = new THREE.Matrix4().makeRotationY(-rotateAngle);
+                rotationMatrix = new THREE.Matrix4().makeRotationY(backward ? rotateAngle : -rotateAngle);
             }
             if (left || right) {
                 playerObject.matrix.multiply(rotationMatrix);
@@ -205,18 +197,6 @@ function addGroundTo(scene) {
     ground.position.set(0, -groundHeight/2, 0);
     ground.receiveShadow = true;
     scene.add( ground );
-
-    var gridGeometry = new THREE.Geometry();
-    for (var i= -5; i <= 5; i++) {
-        gridGeometry.vertices.push(new THREE.Vector3(i, 5, 0));
-        gridGeometry.vertices.push(new THREE.Vector3(i, -5, 0));
-
-        gridGeometry.vertices.push(new THREE.Vector3(-5, i, 0));
-        gridGeometry.vertices.push(new THREE.Vector3(5, i, 0));
-    }
-    var gridMaterial = new THREE.LineBasicMaterial({ color: 0x0 });
-    var grid = new THREE.Line(gridGeometry, gridMaterial, THREE.LinePieces);
-    scene.add(grid);
 }
 
 function building() {
