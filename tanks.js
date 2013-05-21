@@ -1,15 +1,10 @@
 function initScene(camera) {
-    var scene = createScene();
+    var scene = new THREE.Scene();
     geometries = new Geometries();
     addPlayer(scene, camera);
     addLightsTo(scene);
     addGroundTo(scene);
-    addSpinnerTo(scene);
-    //walls(scene);
-    scene.add(this.compass());
     scene.add(building());
-    scene.add(bouncingBall());
-    crashing(scene);
     var gunFactory = new GunFactory();
     var bulletFactory = new BulletFactory();
     var gun1 = gunFactory.createGun({ scene: scene, position: new THREE.Vector3(15, 1, 1.5), name: "gun1", bulletFactory: bulletFactory });
@@ -18,29 +13,6 @@ function initScene(camera) {
     world.objects.push(createJeep({ scene: scene, x: 10, z: 2, move: 0.1, rot: 1.57 }));
     world.objects.push(createJeep({ scene: scene, x: 50, z: 2, move: -0.1, rot: -1.57 }));
     return scene;
-}
-
-function addSpinnerTo(scene) {
-    var spinGeom = new THREE.CylinderGeometry(0.1, 0.6, 20, 32, 16);
-    var spinMat = new THREE.MeshPhongMaterial({ color: 0x25256F,
-        specular: 0x20205F, shininess: 90, opacity: 0.5, transparent: true });
-    var spinMesh = new THREE.Mesh(spinGeom, spinMat);
-    spinMesh.rotation.x = 1.57;
-    var spinner = new THREE.Object3D();
-    spinner.add(spinMesh);
-    spinner.position.set(0, 5, 10);
-    scene.add(spinner);
-    var angle = 0;
-    var Spinner = function() {
-        this.update = function(delta) {
-            angle += 1.57
-            angle *= delta;
-            angle = angle  % (Math.PI *2);
-            spinner.rotation.y += angle;
-        }
-    };
-    Spinner.prototype = new GameEntity();
-    world.objects.push(new Spinner());
 }
 
 function addPlayer(scene, f) {
@@ -110,9 +82,6 @@ function createJeep(spec) {
 
     var Jeep = function() {
         var jeepBody = geometries.createJeepGeometry();
-        jeepBody.addEventListener("collision", function(other, a, b) {
-            console.log("CRAPOLA!");
-        });
         var jeep = new THREE.Object3D();
         jeep.add(jeepBody);
         jeep.position.x = spec.x;
@@ -158,16 +127,6 @@ function BulletFactory() {
         theBullet.add(bullet);
         theBullet.matrixAutoUpdate = false;
         theBullet.matrix = direction;
-
-        bullet.setCcdMotionThreshold(1);
-        bullet.setCcdSweptSphereRadius(0.1);
-
-        bullet.addEventListener( 'collision', function( other_object, linear_velocity, angular_velocity ) {
-            // `this` is the mesh with the event listener
-            // other_object is the object `this` collided with
-            // linear_velocity and angular_velocity are Vector3 objects which represent the velocity of the collision
-            console.log(other_object + " " + linear_velocity + " " + angular_velocity);
-        });
         scene.add(theBullet);
         var Bullet = function() {
             var owner = shooter;
@@ -234,92 +193,15 @@ function GunFactory() {
     }
 }
 
-function createScene() {
-    var scene = new Physijs.Scene;
-    scene.setGravity(new THREE.Vector3(0, -30, 0));
-    scene.addEventListener(
-        'update',
-        function () {
-            scene.simulate(undefined, 1);
-            //physics_stats.update();
-        }
-    );
-    //scene.fog = new THREE.Fog(0xEEEEEE, 1, 100);
-    return scene;
-}
-
-function bouncingBall() {
-    var bouncingBallGeometry = new THREE.SphereGeometry(2, 32, 32);
-    var bouncingMaterial = new Physijs.createMaterial(
-        new THREE.MeshPhongMaterial({ color: 0x25256F,
-            specular: 0x20205F, shininess: 90 }), .8, 1);
-    var bouncingBall = new Physijs.SphereMesh(bouncingBallGeometry, bouncingMaterial, 1);
-//				bouncingMesh.position.set(50, 30, -10);
-    bouncingBall.position.set(0.2, 100, 0);
-    bouncingBall.addEventListener("collision", function(other, a, b) {
-        console.log("Ouch!  I hit something!");
-        //console.log("angularVelocity = " + b.toArray().join());
-    });
-    return bouncingBall;
-}
-
-function crashing(scene) {
-    var bouncingBallGeometry = new THREE.SphereGeometry(2, 32, 32);
-    var bouncingMaterial = new Physijs.createMaterial(
-        new THREE.MeshPhongMaterial({ color: 0x25256F,
-            specular: 0x20205F, shininess: 90 }), .2, 0.8);
-    var crash1 = new Physijs.SphereMesh(bouncingBallGeometry, bouncingMaterial, 1);
-    crash1.position.set(50, 2, -3);
-    crash1.velocity = 0.5;
-    crash1.addEventListener("collision", function(other, linear, angular) {
-        if (other == crash2) {
-            crash1.velocity = 0;
-        }
-    });
-    crash1.update = function(delta) {
-        crash1.translateX(crash1.velocity);
-        crash1.__dirtyPosition = crash1.velocity > 0;
-    };
-    var crash2 = new Physijs.SphereMesh(bouncingBallGeometry, bouncingMaterial, 1);
-    crash2.position.set(100, 2, -3);
-    crash2.velocity = 0.3;
-    crash2.addEventListener("collision", function(other, linear, angular) {
-        console.log("CRRAASSHH");
-        if (other == crash1) {
-            crash2.velocity = 0;
-        }
-    });
-    crash2.update = function(delta) {
-        crash2.position.x -= crash2.velocity;
-        crash2.__dirtyPosition = crash2.velocity > 0;
-    };
-    var crash3 = new Physijs.SphereMesh(bouncingBallGeometry, bouncingMaterial, 1);
-    crash3.position.set(30, 2, -3);
-    crash3.velocity = 0.3;
-    crash3.addEventListener("collision", function(other, linear, angular) {
-        console.log("Hit the wall");
-    });
-    crash3.update = function(delta) {
-        crash3.position.x -= crash3.velocity;
-        crash3.__dirtyPosition = crash3.velocity > 0;
-    };
-    scene.add(crash1);
-    scene.add(crash2);
-    scene.add(crash3);
-    world.objects.push(crash1, crash2, crash3);
-}
-
 function addGroundTo(scene) {
     var groundHeight = 1
     var groundGeometry = new THREE.CubeGeometry(1000, groundHeight, 1000, 100, 1, 100);
-    var groundMaterial = new Physijs.createMaterial(
-        new THREE.MeshLambertMaterial({ map: THREE.ImageUtils.loadTexture( 'images/rocks.jpg' ) }),
-        .8, // high friction
-        .3 // low restitution
-    );
+    var groundMaterial = new THREE.MeshLambertMaterial({
+        map: THREE.ImageUtils.loadTexture( 'images/rocks.jpg' )
+    });
     groundMaterial.map.wrapS = groundMaterial.map.wrapT = THREE.RepeatWrapping;
     groundMaterial.map.repeat.set( 10, 10 );
-    var ground = new Physijs.BoxMesh(groundGeometry, groundMaterial, 0);
+    var ground = new THREE.Mesh(groundGeometry, groundMaterial, 0);
     ground.receiveShadow = true;
     ground.position.set(0, -groundHeight/2, 0);
     ground.receiveShadow = true;
@@ -340,9 +222,8 @@ function addGroundTo(scene) {
 
 function building() {
     var buildingGeometry = new THREE.CubeGeometry(10, 10, 20);
-    var building = new THREE.Mesh(buildingGeometry, new Physijs.createMaterial(
-        new THREE.MeshPhongMaterial({ color: 0x25256F,
-            specular: 0x20205F, shininess: 90 }), .8, 0.1));
+    var building = new THREE.Mesh(buildingGeometry, new THREE.MeshPhongMaterial({ color: 0x25256F,
+            specular: 0x20205F, shininess: 90 }));
     building.position.set(10, 5, -60);
     return building;
 }
@@ -365,85 +246,4 @@ function addLightsTo(scene) {
     //var light = new THREE.DirectionalLight( 0xffffff, 1.0 );
     // light.position.set( 0, 50, 10 );
     //scene.add(light);
-}
-
-function walls(scene) {
-    var wallGeometry = new THREE.CubeGeometry(5, 15, 5);
-    var wallMaterial = new Physijs.createMaterial(
-        new THREE.MeshLambertMaterial({ map: THREE.ImageUtils.loadTexture( 'images/wall-1.jpg' ) }));
-    wallMaterial.map.wrapS = wallMaterial.map.wrapT = THREE.RepeatWrapping;
-    wallMaterial.map.repeat.set( 1, 1 );
-    var wall1 = new Physijs.BoxMesh(wallGeometry, wallMaterial, 0);
-    wall1.position.set(-5, 2.5, 0);
-    scene.add(wall1);
-    var wall2 = new Physijs.BoxMesh(wallGeometry, wallMaterial, 0);
-    wall2.position.set(-5, 2.5, -5);
-    scene.add(wall2);
-    var wall3 = new Physijs.BoxMesh(wallGeometry, wallMaterial, 0);
-    wall3.position.set(-5, 2.5, -10);
-    scene.add(wall3);
-    var wall4 = new Physijs.BoxMesh(wallGeometry, wallMaterial, 0);
-    wall4.position.set(0, 2.5, -10);
-    scene.add(wall4);
-    var wall5 = new Physijs.BoxMesh(wallGeometry, wallMaterial, 0);
-    wall5.position.set(5, 2.5, -10);
-    scene.add(wall5);
-
-}
-
-function compass() {
-    var globeGeometry = new THREE.SphereGeometry(2, 32, 32);
-    //var material = new THREE.MeshPhongMaterial({ color: 0x25256F,
-    //	specular: 0x20205F, shininess: 90 });
-    var globeMaterial = new Physijs.createMaterial(
-        new THREE.MeshPhongMaterial({ color: 0x25256F,
-            specular: 0x20205F, shininess: 90 }), 0.8, 0.1);
-    var globe = new Physijs.SphereMesh(globeGeometry, globeMaterial, 1);
-    globe.position.set(0, 10, 0);
-
-    var barGeometry = new THREE.CylinderGeometry(0.5, 0.5, 10, 64, 64);
-    var pointGeometry = new THREE.CylinderGeometry(0, 1, 1.5, 32, 32);
-
-    var yBarGeometryMaterial = new Physijs.createMaterial(
-        new THREE.MeshLambertMaterial({ color: 0x33CC00 }), 0.8, 0.6);
-    var m = new Physijs.CylinderMesh(barGeometry, yBarGeometryMaterial, 1);
-    m.position.y = 5;
-    var yPointMesh = new Physijs.CylinderMesh(pointGeometry, yBarGeometryMaterial, 1);
-    yPointMesh.position.y = 10;
-
-    var yPointer = new THREE.Object3D();
-    yPointer.add(m);
-    yPointer.add(yPointMesh);
-
-    var xBarGeometryMaterial = new Physijs.createMaterial(
-        new THREE.MeshLambertMaterial({ color: 0xCC0000 }), 0.8, 0.6);
-    var m2 = new Physijs.CylinderMesh(barGeometry, xBarGeometryMaterial, 1);
-    m2.rotation.z = 90 * (Math.PI/180);
-    m2.position.x = 5;
-    var xPointMesh = new Physijs.CylinderMesh(pointGeometry, xBarGeometryMaterial, 1);
-    xPointMesh.rotation.z = -90 * (Math.PI/180);
-    xPointMesh.position.x = 10;
-
-    var xPointer = new THREE.Object3D();
-    xPointer.add(m2);
-    xPointer.add(xPointMesh);
-
-    var zBarGeometryMaterial = new Physijs.createMaterial(
-        new THREE.MeshLambertMaterial({ color: 0x0033CC }), 0.8, 0.6);
-    var m3 = new Physijs.CylinderMesh(barGeometry, zBarGeometryMaterial, 1);
-    m3.rotation.x = 90 * (Math.PI/180);
-    m3.position.z = 5;
-    //scene.add(m3);
-    var zPointMesh = new Physijs.CylinderMesh(pointGeometry, zBarGeometryMaterial, 1);
-    zPointMesh.rotation.x = 90 * (Math.PI/180);
-    zPointMesh.position.z = 10;
-
-    var zPointer = new THREE.Object3D();
-    zPointer.add(m3);
-    zPointer.add(zPointMesh);
-
-    globe.add(xPointer);
-    globe.add(yPointer);
-    globe.add(zPointer);
-    return globe;
 }

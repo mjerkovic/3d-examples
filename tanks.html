@@ -1,0 +1,51 @@
+<html>
+	<head>
+		<script src="lib/three.min.js"></script>
+		<script src="lib/controls.js"></script>
+        <script src="tanks.js"></script>
+        <script src="tankgeometries.js"></script>
+		<script>
+		    var camera, scene, renderer, clock, keyboard;
+            var rotationsPerSecond = Math.PI / 2.0; // * (Math.PI / 180);
+            var world = {};
+
+		   	function setup() {
+			    init();
+			    animate();
+		   	}
+
+		    function init() {
+                world.objects = [];
+                clock = new THREE.Clock();
+		        camera = new THREE.PerspectiveCamera(30, window.innerWidth / window.innerHeight, 1, 500 );
+		        camera.position.set(10, 2, 30);
+    			camera.lookAt(new THREE.Vector3(0, 4, 0));
+
+                scene = initScene(camera);
+
+                renderer = new THREE.WebGLRenderer({ antialias: true });
+                renderer.setSize( window.innerWidth, window.innerHeight );
+                renderer.setClearColor(0xDEDEDE);
+                document.body.appendChild(renderer.domElement);
+                keyboard = new KeyboardState(document);
+            }
+
+            function update(delta) {
+                world.objects.forEach(function (obj) {
+                    obj.update(delta);
+                });
+            }
+            function render() {
+                renderer.render(scene, camera);
+                requestAnimationFrame(animate);
+            }
+            function animate() {
+                var delta = clock.getDelta();
+                update(delta);
+                render();
+            }
+		</script>
+	</head>
+	<body onload="setup()">
+	</body>		
+</html>
