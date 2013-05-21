@@ -75,6 +75,9 @@ function addPlayer(scene, f) {
         this.update = function(delta) {
             var rotationMatrix = new THREE.Matrix4();
             var rotateAngle = Math.PI / 2 * delta;   // pi/2 radians (90 degrees) per second
+            var forward = keyboard.keyPressed("W");
+            var left = keyboard.keyPressed("A");
+            var right = keyboard.keyPressed("D");
 
             if (forward) {
                 playerObject.translateZ(-movementSpeed * delta);
@@ -119,6 +122,7 @@ function createJeep(spec) {
 
         this.update = function(delta) {
             jeep.position.x += spec.move;
+            jeepBody.__dirtyPosition = true;
         }
     };
     Jeep.prototype = new GameEntity();
@@ -174,7 +178,7 @@ function BulletFactory() {
                     scene.remove(theBullet);
                 }
                 bullet.position.z += 50 * delta;
-                theBullet.__dirtyPosition = true;
+                bullet.__dirtyPosition = true;
             }
         };
         Bullet.prototype = new GameEntity();
