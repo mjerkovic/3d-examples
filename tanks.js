@@ -15,18 +15,17 @@ function initScene(camera) {
     return scene;
 }
 
-function addPlayer(scene, f) {
+function addPlayer(scene, camera) {
     var Player = function() {
         var playerBody = geometries.createJeepGeometry();
         var playerObject = new THREE.Object3D();
         playerObject.add(playerBody);
         playerObject.position.x = 0;
         playerObject.position.z = 50;
+        playerObject.rotation.y = Math.PI;
         scene.add(playerObject);
-        var forward = false;
-        var left = false;
-        var right = false;
         var movementSpeed = 50;
+        var maxRotation = THREE.Math.degToRad(90);
 
         this.moveForward = function() {
             forward = !forward;
@@ -46,13 +45,13 @@ function addPlayer(scene, f) {
 
         this.update = function(delta) {
             var rotationMatrix = new THREE.Matrix4();
-            var rotateAngle = Math.PI / 2 * delta;   // pi/2 radians (90 degrees) per second
+            var rotateAngle = maxRotation * delta;   // pi/2 radians (90 degrees) per second
             var forward = keyboard.keyPressed("W");
             var left = keyboard.keyPressed("A");
             var right = keyboard.keyPressed("D");
 
             if (forward) {
-                playerObject.translateZ(-movementSpeed * delta);
+                playerObject.translateZ(movementSpeed * delta);
             }
             if (left) {
                 rotationMatrix = new THREE.Matrix4().makeRotationY(rotateAngle);
@@ -64,7 +63,7 @@ function addPlayer(scene, f) {
                 playerObject.matrix.multiply(rotationMatrix);
                 playerObject.rotation.setEulerFromRotationMatrix(playerObject.matrix);
             }
-            var relativeCameraOffset = new THREE.Vector3(0,5,25);
+            var relativeCameraOffset = new THREE.Vector3(0, 5, -25);
 
             var cameraOffset = relativeCameraOffset.applyMatrix4(playerObject.matrixWorld);
             camera.position.x = cameraOffset.x;
@@ -133,7 +132,7 @@ function BulletFactory() {
             var startPosition = shooter.position();
             this.update = function(delta) {
                 if (startPosition.distanceTo(bullet.position) > 80) {
-                    world.objects.splice(world.objects.indexOf(this), 1);
+                    world.bullets.splice(world.bullets.indexOf(this), 1);
                     scene.remove(theBullet);
                 }
                 bullet.position.z += 50 * delta;
@@ -167,7 +166,7 @@ function GunFactory() {
             this.shoot = function() {
                 var now = Date.now();
                 if (now - gun.lastFired > 3000) {
-                    world.objects.push(spec.bulletFactory.createBullet(this, turret.matrixWorld));
+                    world.bullets.push(spec.bulletFactory.createBullet(this, turret.matrixWorld));
                     playSound(gun.firingSound, gun.position.distanceTo(camera.position));
                     gun.lastFired = now;
                 }
