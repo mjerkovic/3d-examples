@@ -64,7 +64,7 @@ function addPlayer(scene, camera) {
             camera.lookAt(playerObject.position);
         }
     }
-    Player.prototype = new GameEntity();
+    Player.prototype = new GameEntity(2);
     player = new Player();
     world.objects.push(player);
 }
@@ -85,7 +85,7 @@ function createJeep(spec) {
             jeepBody.__dirtyPosition = true;
         }
     };
-    Jeep.prototype = new GameEntity();
+    Jeep.prototype = new GameEntity(2);
     return new Jeep();
 }
 
@@ -94,7 +94,8 @@ function playSound(sound, distanceFromPlayer) {
     sound.play();
 }
 
-function GameEntity() {
+function GameEntity(entityRadius) {
+    var health = 1;
     return {
         getRotationToPlayer: function(source, target, elevation) {
             var tgt = new THREE.Vector3().copy(target.position());
@@ -107,6 +108,14 @@ function GameEntity() {
             var rotate = new THREE.Matrix4().makeRotationAxis(axis, angle);
             var matrix = new THREE.Matrix4().multiplyMatrices(translate, rotate);
             return matrix;
+        },
+
+        hit: function() {
+            health = Math.min(0, health - 0.1);
+        },
+
+        radius: function() {
+            return entityRadius;
         }
     }
 }
@@ -131,7 +140,7 @@ function BulletFactory() {
                 bullet.__dirtyPosition = true;
             }
         };
-        Bullet.prototype = new GameEntity();
+        Bullet.prototype = new GameEntity(0.1);
         return new Bullet();
     }
 }
@@ -179,7 +188,7 @@ function GunFactory() {
             };
 
         };
-        Gun.prototype = new GameEntity();
+        Gun.prototype = new GameEntity(1);
         return new Gun();
     }
 }
