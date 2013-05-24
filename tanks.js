@@ -16,16 +16,16 @@ function initScene(camera) {
 }
 
 function addPlayer(scene, camera) {
+    var playerBody = geometries.createJeepGeometry();
     var Player = function() {
-        var playerBody = geometries.createJeepGeometry();
         var playerObject = new THREE.Object3D();
         playerObject.add(playerBody);
         playerObject.position.x = 0;
         playerObject.position.z = 50;
         playerObject.rotation.y = Math.PI;
         scene.add(playerObject);
-        var movementSpeed = 50;
-        var maxRotation = THREE.Math.degToRad(90);
+        var movementSpeed = 20;
+        var maxRotation = THREE.Math.degToRad(45);
 
         this.position = function() {
             return playerObject.position;
@@ -64,15 +64,15 @@ function addPlayer(scene, camera) {
             camera.lookAt(playerObject.position);
         }
     }
-    Player.prototype = new GameEntity(2);
+    Player.prototype = new GameEntity(2, playerBody);
     player = new Player();
     world.objects.push(player);
 }
 
 function createJeep(spec) {
 
+    var jeepBody = geometries.createJeepGeometry();
     var Jeep = function() {
-        var jeepBody = geometries.createJeepGeometry();
         var jeep = new THREE.Object3D();
         jeep.add(jeepBody);
         jeep.position.x = spec.x;
@@ -82,10 +82,13 @@ function createJeep(spec) {
 
         this.update = function(delta) {
             jeep.position.x += spec.move;
-            jeepBody.__dirtyPosition = true;
+        }
+
+        this.position = function() {
+            return jeep.position;
         }
     };
-    Jeep.prototype = new GameEntity(2);
+    Jeep.prototype = new GameEntity(2, jeepBody);
     return new Jeep();
 }
 
@@ -94,31 +97,38 @@ function playSound(sound, distanceFromPlayer) {
     sound.play();
 }
 
-function GameEntity(entityRadius) {
+function GameEntity(entityRadius, objectMesh) {
     var health = 1;
-    return {
-        getRotationToPlayer: function(source, target, elevation) {
-            var tgt = new THREE.Vector3().copy(target.position());
-            tgt.y -= 1;
-            var vectorToTarget = new THREE.Vector3().subVectors(tgt, source.position()).normalize();
-            var angle = Math.acos(vectorToTarget.dot(new THREE.Vector3(0, 0, 1).normalize()));
-            var axis = new THREE.Vector3().crossVectors(vectorToTarget, new THREE.Vector3(0, 0, 1)).normalize().negate();
-            var t = elevation || { x: 0, y: 1, z: 0 };
-            var translate = new THREE.Matrix4().makeTranslation(t.x, t.y, t.z);
-            var rotate = new THREE.Matrix4().makeRotationAxis(axis, angle);
-            var matrix = new THREE.Matrix4().multiplyMatrices(translate, rotate);
-            return matrix;
-        },
 
-        hit: function() {
-            health = Math.min(0, health - 0.1);
-        },
+    this.getRotationToPlayer = function(source, target, elevation) {
+        var tgt = new THREE.Vector3().copy(target.position());
+        tgt.y -= 1;
+        var vectorToTarget = new THREE.Vector3().subVectors(tgt, source.position()).normalize();
+        var angle = Math.acos(vectorToTarget.dot(new THREE.Vector3(0, 0, 1).normalize()));
+        var axis = new THREE.Vector3().crossVectors(vectorToTarget, new THREE.Vector3(0, 0, 1)).normalize().negate();
+        var t = elevation || { x: 0, y: 1, z: 0 };
+        var translate = new THREE.Matrix4().makeTranslation(t.x, t.y, t.z);
+        var rotate = new THREE.Matrix4().makeRotationAxis(axis, angle);
+        var matrix = new THREE.Matrix4().multiplyMatrices(translate, rotate);
+        return matrix;
+    }
 
-        radius: function() {
-            return entityRadius;
-        }
+    this.hit = function() {
+        health = Math.min(0, health - 0.1);
+    },
+
+    this.radius = function() {
+        return entityRadius;
+    }
+
+    this.mesh = function() {
+        return objectMesh;
     }
 }
+
+THREE.Vector3.prototype.toString = function() {
+    return this.x + ", " + this.y + ", " + this.z;
+};
 
 function BulletFactory() {
     this.createBullet = function(shooter, direction) {
@@ -128,19 +138,77 @@ function BulletFactory() {
         theBullet.matrixAutoUpdate = false;
         theBullet.matrix = direction;
         scene.add(theBullet);
+
         var Bullet = function() {
             var owner = shooter;
             var startPosition = shooter.position();
+            var remove = function() {
+                world.bullets.splice(world.bullets.indexOf(this), 1);
+                scene.remove(theBullet);
+            }
+            var bulletHit = function(that) {
+                return world.objects.some(function(obj) {
+                    if (theBullet.position.distanceTo(obj.position()) <= (that.radius() + obj.radius())) {
+                        obj.hit();
+                        remove();
+                        console.log("HIT!");
+                        return true;
+                    }
+                    return false;
+                });
+            }
+            var maxDistanceTravelled = function() {
+                return startPosition.distanceTo(bullet.position) > 80;
+            }
+
             this.update = function(delta) {
-                if (startPosition.distanceTo(bullet.position) > 80) {
-                    world.bullets.splice(world.bullets.indexOf(this), 1);
-                    scene.remove(theBullet);
+                var m = new THREE.Matrix4().extractRotation(theBullet.matrixWorld);
+                var rayOrigin = new THREE.Vector3().applyMatrix4(new THREE.Matrix4().copyPosition(bullet.matrixWorld));
+                var rayDirection = new THREE.Vector3(0, 0, 1).applyMatrix4(m).normalize();
+                var rayCaster = new THREE.Raycaster(rayOrigin, rayDirection);
+                var entities = world.objects.map(function(object) {
+                    return object.mesh();
+                });
+                var contacts = rayCaster.intersectObjects(entities);
+                if (contacts.length > 0) {
+                    var contact = contacts[0];
+                    if (contact.distance <= this.radius() + 2 + (50 * delta)) {
+                        console.log("Hit detected by raycaster!");
+                        var color = contact.object.material.color;
+                        var newR = color.r;
+                        newR = newR - (newR * 0.1);
+                        var newG = color.g;
+                        newG = newG - (newG * 0.1);
+                        var newB = color.b;
+                        newB = newB - (newB * 0.1);
+                        contact.object.material.color.setRGB(newR, newG, newB);
+                        remove();
+                        return;
+                    }
+                    //var posX =  new THREE.Vector3().applyMatrix4(new THREE.Matrix4().copyPosition(bullet.matrixWorld))
+                    //console.log("Distance = " + contact.distance + "ContactPos = " + contact.object.position + "rayOrigin = " + rayOrigin);
                 }
-                bullet.position.z += 50 * delta;
-                bullet.__dirtyPosition = true;
+                rayDirection.negate();
+                rayCaster = new THREE.Raycaster(rayOrigin, rayDirection);
+                var contacts = rayCaster.intersectObjects(entities);
+                if (contacts.length > 0) {
+                    var contact = contacts[0];
+                    if (contact.distance <= this.radius() + 10) {
+                        console.log("Hit detected by raycaster on the backside!");
+                        remove();
+                        return;
+                    }
+                }
+
+                if (maxDistanceTravelled() || bulletHit(this)) {
+                    remove();
+                } else {
+                    bullet.position.z += 10 * delta;
+                }
+
             }
         };
-        Bullet.prototype = new GameEntity(0.1);
+        Bullet.prototype = new GameEntity(0.1, bullet);
         return new Bullet();
     }
 }
@@ -188,7 +256,7 @@ function GunFactory() {
             };
 
         };
-        Gun.prototype = new GameEntity(1);
+        Gun.prototype = new GameEntity(1, gunGeom);
         return new Gun();
     }
 }
