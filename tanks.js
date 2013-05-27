@@ -26,6 +26,8 @@ function addPlayer(scene, camera) {
         scene.add(playerObject);
         var movementSpeed = 20;
         var maxRotation = THREE.Math.degToRad(45);
+        var acceleration = 5; // m/s
+        var velocity = 0;
 
         this.position = function() {
             return playerObject.position;
@@ -39,12 +41,16 @@ function addPlayer(scene, camera) {
             var right = keyboard.keyPressed("D");
             var backward = keyboard.keyPressed("S");
 
+            velocity += acceleration * delta;
+            velocity = Math.min(Math.max(0, velocity), movementSpeed);
+
             if (forward) {
-                playerObject.translateZ(movementSpeed * delta);
+                playerObject.translateZ(velocity * delta);
             }
             if (backward) {
-                playerObject.translateZ(-movementSpeed * delta);
+                playerObject.translateZ(-velocity * delta);
             }
+
             if (left) {
                 rotationMatrix = new THREE.Matrix4().makeRotationY(backward ? -rotateAngle : rotateAngle);
             }
@@ -150,7 +156,6 @@ function BulletFactory() {
                 return world.objects.some(function(obj) {
                     if (theBullet.position.distanceTo(obj.position()) <= (that.radius() + obj.radius())) {
                         obj.hit();
-                        remove();
                         console.log("HIT!");
                         return true;
                     }
