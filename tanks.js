@@ -1,5 +1,6 @@
 function initScene(camera) {
-    var scene = new THREE.Scene();
+    var scene = new Physijs.Scene;
+    scene.setGravity(new THREE.Vector3(0, -30, 0));
     geometries = new Geometries();
     addPlayer(scene, camera);
     addLightsTo(scene);
@@ -16,7 +17,13 @@ function initScene(camera) {
 }
 
 function addPlayer(scene, camera) {
-    var playerBody = geometries.createJeepGeometry();
+    var newPlayer = geometries.createJeepGeometry();
+    var playerBody = newPlayer.jeep;
+    var playerPhysics = newPlayer.physics;
+    playerPhysics.addEventListener("collision", function(otherObject, linearVelocity, angularVelocity) {
+        console.log("Player collision");
+    });
+
     var Player = function() {
         var playerObject = new THREE.Object3D();
         playerObject.add(playerBody);
@@ -24,6 +31,7 @@ function addPlayer(scene, camera) {
         playerObject.position.z = 50;
         playerObject.rotation.y = Math.PI;
         scene.add(playerObject);
+        scene.add(playerPhysics);
         var movementSpeed = 20;
         var maxRotation = THREE.Math.degToRad(45);
         var acceleration = 5; // m/s
@@ -46,10 +54,14 @@ function addPlayer(scene, camera) {
 
             if (forward) {
                 playerObject.translateZ(velocity * delta);
+                playerPhysics.translateZ(velocity * delta);
             }
             if (backward) {
                 playerObject.translateZ(-velocity * delta);
+                playerPhysics.translateZ(-velocity * delta);
             }
+
+            playerPhysics.__dirtyPosition = forward || backward;
 
             if (left) {
                 rotationMatrix = new THREE.Matrix4().makeRotationY(backward ? -rotateAngle : rotateAngle);
@@ -60,6 +72,9 @@ function addPlayer(scene, camera) {
             if (left || right) {
                 playerObject.matrix.multiply(rotationMatrix);
                 playerObject.rotation.setEulerFromRotationMatrix(playerObject.matrix);
+                playerPhysics.matrix.multiply(rotationMatrix);
+                playerPhysics.rotation.setEulerFromRotationMatrix(playerPhysics.matrix);
+                playerPhysics.__dirtyRotation = true;
             }
             var relativeCameraOffset = new THREE.Vector3(0, 5, -25);
 
@@ -76,8 +91,17 @@ function addPlayer(scene, camera) {
 }
 
 function createJeep(spec) {
+    var newJeep = geometries.createJeepGeometry();
+    var jeepBody = newJeep.jeep;
+    var jeepPhysics = newJeep.physics;
+    jeepPhysics.addEventListener("collision", function(otherObject, linearVelocity, angularVelocity) {
+        if (otherObject.gameId) {
+            console.log(jeepPhysics.gameId + " collided with " + otherObject.gameId);
+        } else {
+            console.log(jeepPhysics.gameId + " collided with something");
+        }
+    });
 
-    var jeepBody = geometries.createJeepGeometry();
     var Jeep = function() {
         var jeep = new THREE.Object3D();
         jeep.add(jeepBody);
@@ -85,14 +109,18 @@ function createJeep(spec) {
         jeep.position.z = spec.z;
         jeep.rotation.y = spec.rot;
         spec.scene.add(jeep);
+        spec.scene.add(jeepPhysics);
 
         this.update = function(delta) {
             jeep.position.x += spec.move;
+            jeepPhysics.position.copy(jeep.position);
+            jeepPhysics.__dirtyPosition = true;
         }
 
         this.position = function() {
             return jeep.position;
         }
+
     };
     Jeep.prototype = new GameEntity(2, jeepBody);
     return new Jeep();

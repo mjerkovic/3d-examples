@@ -1,5 +1,5 @@
 function Geometries() {
-
+    var jeepCounter = 0;
     // Bullet
     var bulletGeom = new THREE.CylinderGeometry(0.0, 0.1, 0.3, 32, 16);
     var bulletMaterial = new THREE.MeshPhongMaterial({
@@ -24,9 +24,6 @@ function Geometries() {
 
     // Jeep
     var jeepBodyGeom = new THREE.CubeGeometry(2.5, 0.6, 4);
-    var jeepBodyMat = new THREE.MeshPhongMaterial({
-        color: 0x8DA23E, specular: 0x8DA23E, ambient: 0xFFFFFF, shininess: 90
-    });
     var wheelGeom = new THREE.CylinderGeometry(0.3, 0.3, 0.2, 32, 16);
     var wheelMat = new THREE.MeshPhongMaterial({
         color: 0x0, specular: 0x0, shininess: 90
@@ -38,6 +35,9 @@ function Geometries() {
 
     return {
         createJeepGeometry: function() {
+            var jeepBodyMat = new THREE.MeshPhongMaterial({
+                color: 0x8DA23E, specular: 0x8DA23E, ambient: 0xFFFFFF, shininess: 90
+            });
             var jeepBody = new THREE.Mesh(jeepBodyGeom, jeepBodyMat);
             jeepBody.position.y = 0.6;
             var lfWheel = new THREE.Mesh(wheelGeom, wheelMat);
@@ -61,7 +61,16 @@ function Geometries() {
             windShield.position.y = 0.5;
             windShield.position.z = 0.5;
             jeepBody.add(windShield);
-            return jeepBody;
+
+            var jeepPhysMaterial = Physijs.createMaterial(new THREE.MeshLambertMaterial({ color: 0xffffff }), 0, 0 );
+            var jeepPhysMesh = new Physijs.SphereMesh(new THREE.CubeGeometry(2.5, 0.6, 4), jeepPhysMaterial , 1000);
+            jeepPhysMesh.visible = false;
+            jeepPhysMesh.gameId = "Jeep" + ++jeepCounter;
+
+            return {
+                jeep: jeepBody,
+                physics: jeepPhysMesh
+            };
         },
 
         createBulletGeometry: function() {

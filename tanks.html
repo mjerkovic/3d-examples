@@ -2,6 +2,8 @@
 	<head>
 		<script src="lib/three.min.js"></script>
 		<script src="lib/controls.js"></script>
+        <script src="lib/physi.js"></script>
+        <script src="lib/physijs_worker.js"></script>
         <script src="tanks.js"></script>
         <script src="tankgeometries.js"></script>
 		<script>
@@ -18,6 +20,8 @@
 		   	}
 
 		    function init() {
+                Physijs.scripts.worker = 'lib/physijs_worker.js';
+                Physijs.scripts.ammo = 'ammo.js';
                 clock = new THREE.Clock();
 		        camera = new THREE.PerspectiveCamera(30, window.innerWidth / window.innerHeight, 1, 500 );
 
@@ -30,7 +34,9 @@
                 keyboard = new KeyboardState(document);
             }
 
-            function update(delta) {
+            function update() {
+                var delta = clock.getDelta();
+                scene.simulate();
                 world.bullets.forEach(function(bullet) {
                     bullet.update(delta);
                 });
@@ -38,13 +44,14 @@
                     obj.update(delta);
                 });
             }
+
             function render() {
                 renderer.render(scene, camera);
                 requestAnimationFrame(animate);
             }
+
             function animate() {
-                var delta = clock.getDelta();
-                update(delta);
+                update();
                 render();
             }
 		</script>
