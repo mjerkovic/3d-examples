@@ -54,13 +54,14 @@ function addPlayer(scene, camera) {
 
             if (forward) {
                 playerObject.translateZ(velocity * delta);
-                playerPhysics.translateZ(velocity * delta);
+                //playerPhysics.translateZ(velocity * delta);
             }
             if (backward) {
                 playerObject.translateZ(-velocity * delta);
-                playerPhysics.translateZ(-velocity * delta);
+                //playerPhysics.translateZ(-velocity * delta);
             }
 
+            playerPhysics.position.copy(playerObject.position);
             playerPhysics.__dirtyPosition = forward || backward;
 
             if (left) {

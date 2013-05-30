@@ -62,9 +62,9 @@ function Geometries() {
             windShield.position.z = 0.5;
             jeepBody.add(windShield);
 
-            var jeepPhysMaterial = Physijs.createMaterial(new THREE.MeshLambertMaterial({ color: 0xffffff }), 0, 0 );
+            var jeepPhysMaterial = Physijs.createMaterial(new THREE.MeshLambertMaterial({ color: 0xff0000, opacity: 0.3, transparent: true }), 0, 0 );
             var jeepPhysMesh = new Physijs.SphereMesh(new THREE.CubeGeometry(2.5, 0.6, 4), jeepPhysMaterial , 1000);
-            jeepPhysMesh.visible = false;
+            //jeepPhysMesh.visible = false;
             jeepPhysMesh.gameId = "Jeep" + ++jeepCounter;
 
             return {
