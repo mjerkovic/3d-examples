@@ -290,21 +290,12 @@ function building() {
 }
 
 function addLightsTo(scene) {
-    var ambientLight = new THREE.AmbientLight( 0x404040 );
+    var light = new THREE.DirectionalLight( 0xffffff, 1.0 );
+    light.position.set( 200, 400, 500 );
+    scene.add(light);
+    var ambientLight = new THREE.AmbientLight( 0x00000A );
     scene.add(ambientLight);
-    var hemisphere = new THREE.HemisphereLight(0xFFFFFF, 0xFFFFFF, 0.6);
-    scene.add(hemisphere);
     var pointLight = new THREE.DirectionalLight(0xFFFFFF, 1.5, 50);
     pointLight.position.set(100,10,0);
     scene.add(pointLight);
-    //var pointLight2= new THREE.DirectionalLight(0xFFFFFF, 1.5);// , 90);
-    //pointLight2.position.set(50, 0, 0);
-    //scene.add(pointLight2);
-    //var spotLight = new THREE.SpotLight( 0xffffff );
-    //spotLight.position.set( 0, 100, 0 );
-    //spotLight.castShadow = true;
-    //scene.add(spotLight);
-    //var light = new THREE.DirectionalLight( 0xffffff, 1.0 );
-    // light.position.set( 0, 50, 10 );
-    //scene.add(light);
 }
